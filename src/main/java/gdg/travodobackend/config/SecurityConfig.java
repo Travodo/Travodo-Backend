@@ -21,20 +21,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Swagger UI 및 API 문서 엔드포인트 허용
-                        .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
-                        // Health Check 엔드포인트 허용
-                        .requestMatchers("/api/health").permitAll()
-                        // 에러 페이지 허용
-                        .requestMatchers("/error").permitAll()
-                        // 그 외 모든 요청은 인증 필요
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 );
 
         return http.build();
