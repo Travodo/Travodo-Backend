@@ -35,7 +35,7 @@ public class SwaggerConfig {
                 .description("로컬 개발 서버");
 
         Server prodServer = new Server()
-                .url("https://your-domain.com")
+                .url("https://travodo.duckdns.org")
                 .description("운영 서버");
 
         // API 정보 설정
@@ -45,7 +45,7 @@ public class SwaggerConfig {
                 .description("Travodo 백엔드 API 문서")
                 .contact(new Contact()
                         .name("GDG Team")
-                        .email("contact@travodo.com")
+                        .email("gdg.travodo@gmail.com")
                         .url("https://travodo.com"))
                 .license(new License()
                         .name("Apache 2.0")
