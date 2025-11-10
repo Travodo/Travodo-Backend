@@ -1,4 +1,4 @@
-package gdg.travodobackend.controller;
+package gdg.travodobackend.healthCheck.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,7 +16,7 @@ import java.util.Map;
 @RequestMapping("/api/health")
 public class HealthCheckController {
 
-    @Operation(summary = "서버 상태 확인", description = "서버가 정상적으로 작동하는지 확인합니다.")
+    @Operation(summary = "서버 상태 확인", description = "서버가 정상적으로 작동하는지 확인합니다. (배포 환경용)")
     @GetMapping
     public ResponseEntity<Map<String, Object>> healthCheck() {
         Map<String, Object> response = new HashMap<>();
