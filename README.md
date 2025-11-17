@@ -11,9 +11,13 @@ GDGoC 그로우톤 6팀 (IOS) Travodo 백엔드 레포지토리입니다
 
 1. 이슈 생성 ex) [FEAT] 로그인 구현
 2. 이슈 생성 번호로 브랜치 생성 ex) feat/#1
-3. 해당 브랜치에서 작업 후 PR
+3. 해당 브랜치에서 작업 commit, push 후 PR
 4. 1명 이상의 코드 리뷰 및 승인 후 main 브랜치로 merge
 
 단 PR시 CI가 깨지면 안됨!
 
-→ PR 페이지에서 CI 확인
+-> PR 페이지에서 CI 확인
+
+ex)
+<img width="1061" height="464" alt="image" src="https://github.com/user-attachments/assets/7918b0ab-6703-4eca-bb06-dd726878852b" />
+
