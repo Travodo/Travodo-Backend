@@ -30,12 +30,8 @@ public class SwaggerConfig {
                 .addList("bearerAuth");
 
         // 서버 정보 설정
-        Server localServer = new Server()
-                .url("http://localhost:8080")
-                .description("로컬 개발 서버");
-
         Server prodServer = new Server()
-                .url("https://your-domain.com")
+                .url("https://travodo.duckdns.org")
                 .description("운영 서버");
 
         // API 정보 설정
@@ -45,7 +41,7 @@ public class SwaggerConfig {
                 .description("Travodo 백엔드 API 문서")
                 .contact(new Contact()
                         .name("GDG Team")
-                        .email("contact@travodo.com")
+                        .email("gdg.travodo@gmail.com")
                         .url("https://travodo.com"))
                 .license(new License()
                         .name("Apache 2.0")
@@ -53,7 +49,7 @@ public class SwaggerConfig {
 
         return new OpenAPI()
                 .info(info)
-                .servers(List.of(localServer, prodServer))
+                .servers(List.of(prodServer))
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth", securityScheme))
                 .addSecurityItem(securityRequirement);
