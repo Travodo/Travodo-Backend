@@ -64,6 +64,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(KakaoApiException.class)
+    public ResponseEntity<Map<String, Object>> handleKakaoApiException(KakaoApiException e) {
+        log.error("카카오 API 오류 발생: {}", e.getMessage(), e);
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", e.getMessage());
+        
+        int httpStatus = e.getHttpStatus();
+        response.put("status", httpStatus);
+        
+        HttpStatus status = HttpStatus.resolve(httpStatus);
+        if (status == null) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        
+        return ResponseEntity.status(status).body(response);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleException(Exception e) {
         log.error("예상치 못한 오류 발생", e);

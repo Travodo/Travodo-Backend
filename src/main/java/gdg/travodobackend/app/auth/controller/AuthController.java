@@ -2,7 +2,7 @@ package gdg.travodobackend.app.auth.controller;
 
 import gdg.travodobackend.app.auth.dto.*;
 import gdg.travodobackend.app.auth.service.AuthService;
-import gdg.travodobackend.global.security.jwt.JwtUtil;
+import gdg.travodobackend.app.auth.service.SocialAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,6 +22,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final SocialAuthService socialAuthService;
 
     @PostMapping("/email/verification/send")
     @Operation(summary = "이메일 인증번호 전송", description = "이메일로 인증번호를 전송합니다")
@@ -107,20 +108,16 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * TODO: 카카오/구글 로그인 구현 예정
-     * 
-     * @PostMapping("/social/login")
-     * @Operation(summary = "소셜 로그인", description = "카카오 또는 구글 로그인을 처리합니다")
-     * public ResponseEntity<AuthResponse> socialLogin(@Valid @RequestBody SocialLoginRequest request) {
-     *     AuthResponse response = socialAuthService.socialLogin(
-     *         request.getProvider(),
-     *         request.getAccessToken(),
-     *         request.getEmail(),
-     *         request.getNickname()
-     *     );
-     *     return ResponseEntity.ok(response);
-     * }
-     */
+    @PostMapping("/social/login")
+    @Operation(summary = "소셜 로그인", description = "카카오 또는 구글 로그인을 처리합니다")
+    public ResponseEntity<AuthResponse> socialLogin(@Valid @RequestBody SocialLoginRequest request) {
+        AuthResponse response = socialAuthService.socialLogin(
+            request.getProvider(),
+            request.getAccessToken(),
+            request.getEmail(),
+            request.getNickname()
+        );
+        return ResponseEntity.ok(response);
+    }
 }
 

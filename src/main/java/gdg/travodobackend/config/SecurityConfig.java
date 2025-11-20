@@ -43,6 +43,7 @@ public class SecurityConfig {
                                 "/api/auth/email/verification/confirm",
                                 "/api/auth/signup",
                                 "/api/auth/login",
+                                "/api/auth/social/login",
                                 "/api/auth/email/find",
                                 "/api/auth/password/reset",
                                 "/api/auth/nickname/check"
