@@ -56,7 +56,11 @@ springdoc:
 
 app:
     frontend:
-        url: ${FRONTEND_URL}
+        url: ${FRONTEND_URL:}
+
+# 카카오 로그인 설정 (프로덕션 환경)
+kakao:
+    rest-api-key: ${KAKAO_REST_API_KEY}
 
 logging:
     level:
