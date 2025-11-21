@@ -60,7 +60,12 @@ jobs:
                   host: ${{ secrets.EC2_HOST }}
                   username: ${{ secrets.EC2_USERNAME }}
                   key: ${{ secrets.EC2_SSH_KEY }}
+                  port: 22
+                  timeout: 60s
+                  command_timeout: 10m
+                  debug: true
                   script: |
+                      # AWS CLI 설정
                       aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
                       aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                       aws configure set region ${{ secrets.AWS_REGION }}
@@ -84,6 +89,7 @@ jobs:
                         -p 8080:8080 \
                         -e TZ=Asia/Seoul \
                         -e SPRING_PROFILES_ACTIVE=${{ secrets.SPRING_PROFILES_ACTIVE }} \
+                        -e DDL_AUTO=update \
                         -e DB_HOST=${{ secrets.DB_HOST }} \
                         -e DB_PORT=3306 \
                         -e DB_NAME=${{ secrets.DB_NAME }} \
@@ -93,7 +99,30 @@ jobs:
                         -e MAIL_USERNAME=${{ secrets.MAIL_USERNAME }} \
                         -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
                         -e FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
+                        -e KAKAO_REST_API_KEY=${{ secrets.KAKAO_REST_API_KEY }} \
                         "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+                      # 컨테이너 시작 대기 (애플리케이션 시작 확인)
+                      echo "컨테이너 시작 대기 중..."
+                      sleep 10
+
+                      # 컨테이너 상태 확인
+                      docker ps | grep travodo-app || echo "컨테이너가 실행 중이 아닙니다"
+
+                      # Health Check 확인
+                      for i in {1..30}; do
+                          if curl -f http://localhost:8080/api/health > /dev/null 2>&1; then
+                              echo "애플리케이션이 정상적으로 시작되었습니다"
+                              break
+                          fi
+                          echo "애플리케이션 시작 대기 중... ($i/30)"
+                          sleep 2
+                      done
+
+                      # Nginx 설정 테스트 및 리로드
+                      if command -v nginx &> /dev/null; then
+                          sudo nginx -t && sudo systemctl reload nginx || echo "Nginx 리로드 실패"
+                      fi
 
                       # 사용하지 않는 이미지 정리
                       docker image prune -af
