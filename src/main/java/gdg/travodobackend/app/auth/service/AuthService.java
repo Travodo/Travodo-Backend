@@ -9,6 +9,7 @@ import gdg.travodobackend.app.user.repository.UserRepository;
 import gdg.travodobackend.global.exception.AccountLinkRequiredException;
 import gdg.travodobackend.global.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,9 @@ public class AuthService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+
+    @Value("${test.token.password:}")
+    private String testTokenPassword;
 
     private static final int VERIFICATION_CODE_EXPIRY_MINUTES = 10;
 
@@ -309,6 +313,68 @@ public class AuthService {
                 .userId(existingUser.getId())
                 .email(existingUser.getEmail())
                 .nickname(existingUser.getNickname())
+                .build();
+    }
+
+    /**
+     * 테스트용 토큰 발급 (개발 환경 전용)
+     * 비밀번호를 입력받아 검증 후 테스트 토큰 발급
+     * 
+     * @param request 테스트 토큰 요청 (비밀번호, 이메일 선택)
+     * @return 인증 응답 (JWT 토큰 포함)
+     */
+    @Transactional
+    public AuthResponse issueTestToken(TestTokenRequest request) {
+        // 비밀번호 검증
+        if (testTokenPassword == null || testTokenPassword.isEmpty()) {
+            throw new IllegalArgumentException("테스트 토큰 발급 기능이 설정되지 않았습니다");
+        }
+        
+        if (!testTokenPassword.equals(request.getPassword())) {
+            throw new IllegalArgumentException("테스트 비밀번호가 올바르지 않습니다");
+        }
+
+        User user;
+        
+        // 이메일이 제공된 경우 해당 사용자 조회
+        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+            user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 사용자를 찾을 수 없습니다: " + request.getEmail()));
+        } else {
+            // 이메일이 제공되지 않은 경우 첫 번째 활성 사용자 조회 또는 테스트 사용자 생성
+            Optional<User> firstUser = userRepository.findAll().stream()
+                    .filter(User::getActive)
+                    .findFirst();
+            
+            if (firstUser.isPresent()) {
+                user = firstUser.get();
+            } else {
+                // 활성 사용자가 없는 경우 테스트 사용자 생성
+                user = User.builder()
+                        .email("test@travodo.local")
+                        .password(passwordEncoder.encode("test1234!"))
+                        .nickname("테스트사용자")
+                        .emailVerified(true)
+                        .provider(AuthProvider.EMAIL)
+                        .providerId(null)
+                        .active(true)
+                        .build();
+                user = userRepository.save(user);
+            }
+        }
+
+        if (!user.getActive()) {
+            throw new IllegalArgumentException("비활성화된 계정입니다");
+        }
+
+        // JWT 토큰 생성
+        String token = jwtUtil.generateToken(user.getId(), user.getEmail());
+
+        return AuthResponse.builder()
+                .token(token)
+                .userId(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
                 .build();
     }
 }
