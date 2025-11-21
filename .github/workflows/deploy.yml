@@ -2,10 +2,10 @@ name: CI/CD Pipeline
 
 on:
     push:
-        branches: ['main']
+        branches: [ "main" ]
     pull_request:
-        branches: ['main']
-        types: [opened, synchronize, reopened]
+        branches: [ "main" ]
+        types: [ opened, synchronize, reopened ]
 
 jobs:
     build:
@@ -37,9 +37,9 @@ jobs:
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v2
               with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws-region: ${{ secrets.AWS_REGION }}
+                  aws-region:            ${{ secrets.AWS_REGION }}
 
             - name: Login to Amazon ECR
               id: login-ecr
@@ -50,39 +50,35 @@ jobs:
                   ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
                   ECR_REPOSITORY="travodo"
                   IMAGE_TAG="${{ github.sha }}"
-
+                  
                   docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
                   docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
             - name: Deploy to EC2 instance
               uses: appleboy/ssh-action@master
               with:
-                  host: ${{ secrets.EC2_HOST }}
-                  username: ${{ secrets.EC2_USERNAME }}
-                  key: ${{ secrets.EC2_SSH_KEY }}
-                  port: 22
-                  timeout: 60s
-                  command_timeout: 10m
-                  debug: true
+                  host:      ${{ secrets.EC2_HOST }}
+                  username:  ${{ secrets.EC2_USERNAME }}
+                  key:       ${{ secrets.EC2_SSH_KEY }}
                   script: |
                       aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
                       aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                       aws configure set region ${{ secrets.AWS_REGION }}
-
+                      
                       ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
                       ECR_REPOSITORY="travodo"
                       IMAGE_TAG="${{ github.sha }}"
-
+                      
                       # ECR 로그인
                       aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin "$ECR_REGISTRY"
-
+                      
                       # 최신 이미지 Pull
                       docker pull "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-
+                      
                       # 기존 컨테이너 중지 및 삭제
                       docker stop travodo-app || true
                       docker rm travodo-app || true
-
+                      
                       # 새 컨테이너 실행
                       docker run -d --name travodo-app --restart unless-stopped \
                         -p 8080:8080 \
@@ -98,6 +94,7 @@ jobs:
                         -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
                         -e FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
                         "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-
+                      
                       # 사용하지 않는 이미지 정리
                       docker image prune -af
+
