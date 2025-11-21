@@ -40,7 +40,7 @@ public class SwaggerConfig {
                 .version("1.0.0")
                 .description("Travodo 백엔드 API 문서")
                 .contact(new Contact()
-                        .name("GDG Team")
+                        .name("IOS team6")
                         .email("gdg.travodo@gmail.com")
                         .url("https://travodo.com"))
                 .license(new License()

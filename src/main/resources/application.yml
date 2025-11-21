@@ -1,56 +1,56 @@
 # 기본 설정 (모든 프로파일에서 공통으로 사용)
 server:
-  port: ${SERVER_PORT:8080}
+    port: ${SERVER_PORT:8080}
 
 spring:
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:local}
+    profiles:
+        active: ${SPRING_PROFILES_ACTIVE:local}
 
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:aq-project}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:}
-    hikari:
-      maximum-pool-size: 5
-      minimum-idle: 2
-      connection-timeout: 30000
+    datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false
+        username: ${DB_USERNAME:root}
+        password: ${DB_PASSWORD:}
+        hikari:
+            maximum-pool-size: 5
+            minimum-idle: 2
+            connection-timeout: 30000
 
-  jpa:
-    hibernate:
-      ddl-auto: ${DDL_AUTO:update}
-    database-platform: org.hibernate.dialect.MySQLDialect
-    properties:
-      hibernate:
-        format_sql: false
-    show-sql: false
-    open-in-view: false
+    jpa:
+        hibernate:
+            ddl-auto: ${DDL_AUTO:create} # 개발 환경: create, 프로덕션: validate 또는 none
+        database-platform: org.hibernate.dialect.MySQLDialect
+        properties:
+            hibernate:
+                format_sql: false
+        show-sql: false
+        open-in-view: false
 
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
+    mail:
+        host: smtp.gmail.com
+        port: 587
+        username: ${MAIL_USERNAME:}
+        password: ${MAIL_PASSWORD:}
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
+                        required: true
+                    connectiontimeout: 5000
+                    timeout: 5000
+                    writetimeout: 5000
 
 springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    url: /v3/api-docs
-    display-request-duration: true
-    groups-order: ASC
+    api-docs:
+        path: /v3/api-docs
+    swagger-ui:
+        path: /swagger-ui.html
+        url: /v3/api-docs
+        display-request-duration: true
+        groups-order: ASC
 
 jwt:
-  secret: ${JWT_SECRET:your-secret-key-change-this-in-production-use-long-random-string}
-  expiration: 86400000
+    secret: ${JWT_SECRET:your-secret-key-change-this-in-production-use-long-random-string}
+    expiration: 86400000
