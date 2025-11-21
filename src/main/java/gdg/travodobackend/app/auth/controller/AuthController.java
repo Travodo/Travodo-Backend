@@ -149,13 +149,5 @@ public class AuthController {
         AuthResponse response = socialAuthService.linkSocialAccount(email, provider, providerId);
         return ResponseEntity.ok(response);
     }
-
-    @PostMapping("/test/token")
-    @Operation(summary = "테스트 토큰 발급 (개발 환경 전용)", 
-               description = "Swagger 테스트를 위한 테스트 토큰을 발급합니다. 비밀번호를 입력해야 합니다.")
-    public ResponseEntity<AuthResponse> issueTestToken(@Valid @RequestBody TestTokenRequest request) {
-        AuthResponse response = authService.issueTestToken(request);
-        return ResponseEntity.ok(response);
-    }
 }
 

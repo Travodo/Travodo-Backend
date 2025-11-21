@@ -62,11 +62,6 @@ app:
 kakao:
     rest-api-key: ${KAKAO_REST_API_KEY}
 
-# 테스트 토큰 발급 설정 (프로덕션 환경)
-test:
-    token:
-        password: ${TEST_TOKEN_PASSWORD:}  # 테스트 토큰 발급 비밀번호 (환경 변수로 관리)
-
 logging:
     level:
         root: INFO
