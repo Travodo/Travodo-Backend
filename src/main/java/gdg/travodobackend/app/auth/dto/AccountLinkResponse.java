@@ -32,8 +32,6 @@ public class AccountLinkResponse {
                 return "이메일";
             case KAKAO:
                 return "카카오";
-            case GOOGLE:
-                return "구글";
             default:
                 return provider.name();
         }

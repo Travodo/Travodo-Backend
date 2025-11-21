@@ -37,10 +37,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "provider", nullable = false, length = 20)
     @Builder.Default
-    private AuthProvider provider = AuthProvider.EMAIL;  // 로그인 제공자 (EMAIL, KAKAO, GOOGLE)
+    private AuthProvider provider = AuthProvider.EMAIL;  // 로그인 제공자 (EMAIL, KAKAO)
 
     @Column(name = "provider_id", length = 100)
-    private String providerId;  // 소셜 로그인 제공자의 사용자 ID (예: 카카오 ID, 구글 ID)
+    private String providerId;  // 소셜 로그인 제공자의 사용자 ID (예: 카카오 ID)
 
     @Column(name = "active", nullable = false)
     @Builder.Default

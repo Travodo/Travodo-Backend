@@ -14,7 +14,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
     boolean existsByNickname(String nickname);
     
-    // 소셜 로그인 관련 메서드 (향후 카카오, 구글 로그인 추가 시 사용)
+    // 소셜 로그인 관련 메서드
     Optional<User> findByProviderAndProviderId(AuthProvider provider, String providerId);
     Optional<User> findByEmailAndProvider(String email, AuthProvider provider);
     boolean existsByProviderAndProviderId(AuthProvider provider, String providerId);

@@ -110,7 +110,7 @@ public class AuthController {
     }
 
     @PostMapping("/social/login")
-    @Operation(summary = "소셜 로그인", description = "카카오 또는 구글 로그인을 처리합니다")
+    @Operation(summary = "소셜 로그인", description = "카카오 로그인을 처리합니다")
     public ResponseEntity<AuthResponse> socialLogin(@Valid @RequestBody SocialLoginRequest request) {
         AuthResponse response = socialAuthService.socialLogin(
             request.getProvider(),
@@ -126,8 +126,7 @@ public class AuthController {
     public ResponseEntity<AuthResponse> linkAccount(@Valid @RequestBody LinkAccountRequest request) {
         AuthResponse response;
         
-        if (request.getExistingProvider() == AuthProvider.KAKAO || 
-            request.getExistingProvider() == AuthProvider.GOOGLE) {
+        if (request.getExistingProvider() == AuthProvider.KAKAO) {
             // 소셜 로그인 계정에 이메일 로그인 추가
             response = authService.linkAccount(request);
         } else if (request.getExistingProvider() == AuthProvider.EMAIL) {

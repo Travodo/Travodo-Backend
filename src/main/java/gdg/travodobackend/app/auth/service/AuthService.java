@@ -280,8 +280,7 @@ public class AuthService {
         }
         
         // 계정 통합
-        if (request.getExistingProvider() == AuthProvider.KAKAO || 
-            request.getExistingProvider() == AuthProvider.GOOGLE) {
+        if (request.getExistingProvider() == AuthProvider.KAKAO) {
             // 소셜 로그인 계정에 비밀번호 추가
             existingUser.updatePassword(passwordEncoder.encode(request.getPassword()));
             existingUser.verifyEmail(); // 이메일 인증 완료 처리

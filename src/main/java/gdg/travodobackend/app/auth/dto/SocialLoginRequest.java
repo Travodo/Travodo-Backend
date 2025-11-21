@@ -8,7 +8,7 @@ import lombok.Setter;
 
 /**
  * 소셜 로그인 요청 DTO
- * 향후 카카오, 구글 로그인 추가 시 사용
+ * 카카오 로그인에 사용
  */
 @Getter
 @Setter
