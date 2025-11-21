@@ -65,5 +65,13 @@ public class User {
     public void verifyEmail() {
         this.emailVerified = true;
     }
+    
+    /**
+     * 소셜 로그인 계정 연결 (providerId 추가)
+     * 이메일 로그인 사용자가 소셜 로그인을 연동할 때 사용
+     */
+    public void linkSocialProvider(String providerId) {
+        this.providerId = providerId;
+    }
 }
 

@@ -4,6 +4,7 @@ import gdg.travodobackend.app.auth.dto.AuthResponse;
 import gdg.travodobackend.app.user.entity.AuthProvider;
 import gdg.travodobackend.app.user.entity.User;
 import gdg.travodobackend.app.user.repository.UserRepository;
+import gdg.travodobackend.global.exception.AccountLinkRequiredException;
 import gdg.travodobackend.global.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,22 +57,33 @@ public class SocialAuthService {
             }
             log.info("카카오 로그인 - 기존 사용자: {}", user.getEmail());
         } else {
-            // 이메일로 이미 가입된 사용자가 있는지 확인 (다른 제공자로 가입한 경우)
-            if (email != null) {
+            // 이메일로 이미 가입된 사용자가 있는지 확인 (계정 통합)
+            if (email != null && !email.isEmpty() && !email.contains("@travodo.local")) {
                 Optional<User> emailUserOpt = userRepository.findByEmail(email);
                 if (emailUserOpt.isPresent()) {
                     User emailUser = emailUserOpt.get();
-                    if (emailUser.getProvider() != AuthProvider.KAKAO) {
+                    
+                    // 이미 카카오로 가입된 경우는 위에서 처리됨 (providerId로 찾기)
+                    // 이메일로 가입된 계정인 경우: 계정 통합 확인 필요
+                    if (emailUser.getProvider() == AuthProvider.EMAIL && emailUser.getPassword() != null) {
+                        // 사용자에게 계정 통합 확인 요청
+                        throw new AccountLinkRequiredException(AuthProvider.EMAIL, email);
+                    } else {
+                        // 다른 소셜 로그인으로 가입된 경우
                         throw new IllegalArgumentException(
                             "이미 " + emailUser.getProvider() + " 로그인으로 가입된 이메일입니다"
                         );
                     }
+                } else {
+                    // 새 사용자 생성
+                    user = createSocialUser(AuthProvider.KAKAO, providerId, email, nickname);
+                    log.info("카카오 로그인 - 신규 사용자 생성: {}", user.getEmail());
                 }
+            } else {
+                // 이메일이 없는 경우 새 사용자 생성
+                user = createSocialUser(AuthProvider.KAKAO, providerId, email, nickname);
+                log.info("카카오 로그인 - 신규 사용자 생성: {}", user.getEmail());
             }
-
-            // 새 사용자 생성
-            user = createSocialUser(AuthProvider.KAKAO, providerId, email, nickname);
-            log.info("카카오 로그인 - 신규 사용자 생성: {}", user.getEmail());
         }
 
         // JWT 토큰 생성
@@ -141,6 +153,46 @@ public class SocialAuthService {
      */
     private String generateAlternativeEmail(AuthProvider provider, String providerId) {
         return provider.name().toLowerCase() + "_" + providerId + "@travodo.local";
+    }
+    
+    /**
+     * 계정 통합: 이메일 계정에 소셜 로그인 providerId 추가
+     * 
+     * @param email 이메일
+     * @param provider 소셜 로그인 제공자
+     * @param providerId 소셜 로그인 제공자의 사용자 ID
+     * @return 인증 응답
+     */
+    @Transactional
+    public AuthResponse linkSocialAccount(String email, AuthProvider provider, String providerId) {
+        // 기존 이메일 계정 찾기
+        User existingUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("계정을 찾을 수 없습니다"));
+        
+        // 이메일 계정인지 확인
+        if (existingUser.getProvider() != AuthProvider.EMAIL || existingUser.getPassword() == null) {
+            throw new IllegalArgumentException("이메일 로그인 계정이 아닙니다");
+        }
+        
+        // 이미 해당 providerId로 연동된 경우
+        if (existingUser.getProviderId() != null && existingUser.getProviderId().equals(providerId)) {
+            log.info("이미 연동된 계정: {}", email);
+        } else {
+            // 카카오 providerId 추가
+            existingUser.linkSocialProvider(providerId);
+            existingUser = userRepository.save(existingUser);
+            log.info("카카오 로그인 - 기존 이메일 계정에 카카오 연동: {}", email);
+        }
+        
+        // JWT 토큰 생성
+        String token = jwtUtil.generateToken(existingUser.getId(), existingUser.getEmail());
+        
+        return AuthResponse.builder()
+                .token(token)
+                .userId(existingUser.getId())
+                .email(existingUser.getEmail())
+                .nickname(existingUser.getNickname())
+                .build();
     }
 }
 

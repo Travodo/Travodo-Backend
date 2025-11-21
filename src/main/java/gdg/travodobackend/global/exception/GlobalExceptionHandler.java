@@ -81,6 +81,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(response);
     }
 
+    @ExceptionHandler(AccountLinkRequiredException.class)
+    public ResponseEntity<Map<String, Object>> handleAccountLinkRequiredException(AccountLinkRequiredException e) {
+        log.info("계정 통합 필요: 기존 제공자={}, 이메일={}", e.getExistingProvider(), e.getEmail());
+        Map<String, Object> response = new HashMap<>();
+        response.put("needsConfirmation", true);
+        response.put("message", e.getMessage());
+        response.put("existingProvider", e.getExistingProvider().name());
+        response.put("email", e.getEmail());
+        response.put("status", e.getHttpStatus());
+        
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleException(Exception e) {
         log.error("예상치 못한 오류 발생", e);

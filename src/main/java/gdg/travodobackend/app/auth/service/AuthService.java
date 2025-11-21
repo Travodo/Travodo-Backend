@@ -6,6 +6,7 @@ import gdg.travodobackend.app.user.entity.EmailVerification;
 import gdg.travodobackend.app.user.entity.User;
 import gdg.travodobackend.app.user.repository.EmailVerificationRepository;
 import gdg.travodobackend.app.user.repository.UserRepository;
+import gdg.travodobackend.global.exception.AccountLinkRequiredException;
 import gdg.travodobackend.global.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -80,16 +81,30 @@ public class AuthService {
 
     @Transactional
     public AuthResponse signup(SignupRequest request) {
-        // 이메일 중복 확인 (이메일 로그인만 확인)
-        if (userRepository.existsByEmail(request.getEmail())) {
-            // 소셜 로그인으로 가입한 경우도 확인
-            Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
-            if (existingUser.isPresent() && existingUser.get().getProvider() != AuthProvider.EMAIL) {
-                throw new IllegalArgumentException("이미 소셜 로그인으로 가입된 이메일입니다");
+        // 이메일 중복 확인
+        Optional<User> existingUserOpt = userRepository.findByEmail(request.getEmail());
+        
+        if (existingUserOpt.isPresent()) {
+            User existingUser = existingUserOpt.get();
+            
+            // 이미 이메일 로그인으로 가입된 경우
+            if (existingUser.getProvider() == AuthProvider.EMAIL) {
+                throw new IllegalArgumentException("이미 가입된 이메일입니다");
             }
-            throw new IllegalArgumentException("이미 가입된 이메일입니다");
+            
+            // 소셜 로그인으로 가입된 경우: 계정 통합 확인 필요
+            if (existingUser.getPassword() == null) {
+                // 사용자에게 계정 통합 확인 요청
+                throw new AccountLinkRequiredException(existingUser.getProvider(), request.getEmail());
+            }
+            
+            // 이미 비밀번호가 설정된 경우
+            throw new IllegalArgumentException("이미 이메일 로그인 비밀번호가 설정된 계정입니다");
         }
+        
+        User user;
 
+        // 새 사용자 생성 (이메일 로그인)
         // 닉네임 중복 확인
         if (userRepository.existsByNickname(request.getName())) {
             throw new IllegalArgumentException("이미 사용 중인 닉네임입니다");
@@ -103,8 +118,7 @@ public class AuthService {
             throw new IllegalArgumentException("이메일 인증을 완료해주세요");
         }
 
-        // 사용자 생성
-        User user = User.builder()
+        user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getName())
@@ -231,6 +245,72 @@ public class AuthService {
         if (userRepository.existsByNickname(nickname)) {
             throw new IllegalArgumentException("이미 사용 중인 닉네임입니다");
         }
+    }
+    
+    /**
+     * 계정 통합: 소셜 로그인 계정에 이메일 로그인 비밀번호 추가
+     * 
+     * @param request 계정 통합 요청
+     * @return 인증 응답
+     */
+    @Transactional
+    public AuthResponse linkAccount(LinkAccountRequest request) {
+        // 기존 사용자 찾기
+        User existingUser = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("계정을 찾을 수 없습니다"));
+        
+        // 제공자 확인
+        if (existingUser.getProvider() != request.getExistingProvider()) {
+            throw new IllegalArgumentException("계정 정보가 일치하지 않습니다");
+        }
+        
+        // 이미 비밀번호가 설정된 경우
+        if (existingUser.getPassword() != null && request.getExistingProvider() != AuthProvider.EMAIL) {
+            throw new IllegalArgumentException("이미 비밀번호가 설정된 계정입니다");
+        }
+        
+        // 이메일 인증 확인 (이메일 회원가입 시)
+        if (request.getExistingProvider() != AuthProvider.EMAIL) {
+            Optional<EmailVerification> verificationOpt = emailVerificationRepository
+                    .findTopByEmailOrderByCreatedAtDesc(request.getEmail());
+
+            if (verificationOpt.isEmpty() || !verificationOpt.get().getVerified()) {
+                throw new IllegalArgumentException("이메일 인증을 완료해주세요");
+            }
+        }
+        
+        // 계정 통합
+        if (request.getExistingProvider() == AuthProvider.KAKAO || 
+            request.getExistingProvider() == AuthProvider.GOOGLE) {
+            // 소셜 로그인 계정에 비밀번호 추가
+            existingUser.updatePassword(passwordEncoder.encode(request.getPassword()));
+            existingUser.verifyEmail(); // 이메일 인증 완료 처리
+            
+            // 닉네임 업데이트 (요청된 경우)
+            if (request.getNickname() != null && !request.getNickname().isEmpty()) {
+                // 닉네임 중복 확인
+                if (!existingUser.getNickname().equals(request.getNickname()) 
+                    && userRepository.existsByNickname(request.getNickname())) {
+                    throw new IllegalArgumentException("이미 사용 중인 닉네임입니다");
+                }
+                // 닉네임은 User 엔티티에 setter가 없으므로 별도 처리 필요
+            }
+        } else if (request.getExistingProvider() == AuthProvider.EMAIL) {
+            // 이메일 계정에 소셜 로그인 연동은 소셜 로그인 시 처리
+            throw new IllegalArgumentException("이메일 계정에 소셜 로그인 연동은 소셜 로그인 시 처리됩니다");
+        }
+        
+        existingUser = userRepository.save(existingUser);
+        
+        // JWT 토큰 생성
+        String token = jwtUtil.generateToken(existingUser.getId(), existingUser.getEmail());
+        
+        return AuthResponse.builder()
+                .token(token)
+                .userId(existingUser.getId())
+                .email(existingUser.getEmail())
+                .nickname(existingUser.getNickname())
+                .build();
     }
 }
 
