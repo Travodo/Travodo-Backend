@@ -68,3 +68,17 @@ logging:
         com.example.aq: INFO
     pattern:
         console: '%d{yyyy-MM-dd HH:mm:ss} - %msg%n'
+
+cloud:
+    aws:
+        region:
+            static: ${S3_REGION:ap-northeast-2}
+        s3:
+            bucket: ${S3_BUCKETNAME:travodo-s3}
+
+# AWS S3 설정
+aws:
+    s3:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+        base-url: ${AWS_S3_BASE_URL}
