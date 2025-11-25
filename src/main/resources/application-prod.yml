@@ -5,9 +5,9 @@ server:
 spring:
     datasource:
         driver-class-name: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
-        username: ${DB_USERNAME}
-        password: ${DB_PASSWORD}
+        url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+        username: ${DB_USERNAME:}
+        password: ${DB_PASSWORD:}
         hikari:
             maximum-pool-size: 10
             minimum-idle: 5
@@ -28,8 +28,8 @@ spring:
     mail:
         host: smtp.gmail.com
         port: 587
-        username: ${MAIL_USERNAME}
-        password: ${MAIL_PASSWORD}
+        username: ${MAIL_USERNAME:}
+        password: ${MAIL_PASSWORD:}
         properties:
             mail:
                 smtp:

@@ -8,8 +8,8 @@ spring:
 
     datasource:
         driver-class-name: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false
-        username: ${DB_USERNAME:root}
+        url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false
+        username: ${DB_USERNAME:}
         password: ${DB_PASSWORD:}
         hikari:
             maximum-pool-size: 5
@@ -25,6 +25,11 @@ spring:
                 format_sql: false
         show-sql: false
         open-in-view: false
+
+      # localDate Jackson설정
+        jackson:
+            date-format: yyyy-MM-dd
+            time-zone: Asia/Seoul
 
     mail:
         host: smtp.gmail.com
