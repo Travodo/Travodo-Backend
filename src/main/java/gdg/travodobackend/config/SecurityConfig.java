@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/health").permitAll()
+                        .requestMatchers("/api/health/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
