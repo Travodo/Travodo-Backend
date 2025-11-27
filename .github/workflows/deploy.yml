@@ -100,22 +100,38 @@ jobs:
                         -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
                         -e FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
                         -e KAKAO_REST_API_KEY=${{ secrets.KAKAO_REST_API_KEY }} \
+                        -e AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }} \
+                        -e AWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }} \
+                        -e AWS_S3_BASE_URL=${{ secrets.AWS_S3_BASE_URL }} \
+                        -e S3_REGION=${{ secrets.S3_REGION }} \
+                        -e S3_BUCKETNAME=${{ secrets.S3_BUCKETNAME }} \
                         "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
                       # 컨테이너 시작 대기 (애플리케이션 시작 확인)
                       echo "컨테이너 시작 대기 중..."
-                      sleep 10
+                      sleep 15
 
                       # 컨테이너 상태 확인
                       docker ps | grep travodo-app || echo "컨테이너가 실행 중이 아닙니다"
+                      
+                      # 컨테이너 로그 확인 (디버깅용)
+                      echo "=== 컨테이너 로그 (최근 50줄) ==="
+                      docker logs --tail 50 travodo-app || echo "로그를 가져올 수 없습니다"
 
-                      # Health Check 확인
-                      for i in {1..30}; do
+                      # Health Check 확인 (최대 2분 대기)
+                      echo "=== Health Check 시작 ==="
+                      for i in {1..60}; do
                           if curl -f http://localhost:8080/api/health > /dev/null 2>&1; then
                               echo "애플리케이션이 정상적으로 시작되었습니다"
                               break
                           fi
-                          echo "애플리케이션 시작 대기 중... ($i/30)"
+                          if [ $i -eq 60 ]; then
+                              echo "애플리케이션 시작 실패 (2분 초과)"
+                              echo "=== 최근 에러 로그 ==="
+                              docker logs --tail 100 travodo-app | grep -i error || docker logs --tail 100 travodo-app
+                              exit 1
+                          fi
+                          echo "애플리케이션 시작 대기 중... ($i/60)"
                           sleep 2
                       done
 
