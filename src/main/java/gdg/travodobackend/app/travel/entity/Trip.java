@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,8 +32,13 @@ public class Trip {
     @OneToMany(mappedBy = "trip")
     private List<TripMember> members = new ArrayList<>();
 
+    // 초대 코드 재발급 메서드
     public void updateInviteCode(String newCode) {
         this.inviteCode = newCode;
     }
 
+    // 여행 상태 변경 메서드
+    public void updateStatus(TripStatus status) {
+        this.status = status;
+    }
 }

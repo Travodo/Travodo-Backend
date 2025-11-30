@@ -1,9 +1,6 @@
 package gdg.travodobackend.app.travel.service;
 
-import gdg.travodobackend.app.travel.dto.TripCreateRequest;
-import gdg.travodobackend.app.travel.dto.TripCreateResponse;
-import gdg.travodobackend.app.travel.dto.TripJoinRequest;
-import gdg.travodobackend.app.travel.dto.TripResponse;
+import gdg.travodobackend.app.travel.dto.*;
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.entity.TripMember;
 import gdg.travodobackend.app.travel.entity.TripStatus;
@@ -15,6 +12,10 @@ import gdg.travodobackend.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class TripService {
@@ -23,6 +24,9 @@ public class TripService {
     private final TripMemberRepository tripMemberRepository;
     private final UserRepository userRepository;
 
+    /**
+     * 여행 생성 (POST /trips)
+     */
     public TripCreateResponse createTrip(Long userId, TripCreateRequest request) {
 
         User user = userRepository.findById(userId)
@@ -53,6 +57,9 @@ public class TripService {
         );
     }
 
+    /**
+     * 초대 코드 재발급 (POST /trips/{tripId}/invite-code)
+     */
     public String regenerateInviteCode(Long tripId) {
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new RuntimeException("Trip not found"));
@@ -64,7 +71,10 @@ public class TripService {
         return newCode;
     }
 
-    public TripResponse joinTrip(Long userId, TripJoinRequest request) {
+    /**
+    * 초대 코드로 여행 참가 (POST /trips/join)
+    */
+     public TripResponse joinTrip(Long userId, TripJoinRequest request) {
 
         Trip trip = tripRepository.findByInviteCode(request.inviteCode())
                 .orElseThrow(() -> new RuntimeException("Invalid invite code"));
@@ -85,7 +95,10 @@ public class TripService {
         return TripResponse.from(trip);
     }
 
-    public TripResponse getTripDetail(Long userId, Long tripId) {
+    /**
+    * 여행 상세 조회 (GET /trips/{tripId})
+    */
+     public TripResponse getTripDetail(Long userId, Long tripId) {
         // 1) 여행 존재 여부 확인
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new TripNotFoundException("여행을 찾을 수 없습니다."));
@@ -103,5 +116,62 @@ public class TripService {
 
     private String generateInviteCode() {
         return String.valueOf((int)(Math.random() * 90000) + 10000); // 5자리
+    }
+
+    /**
+     * 여행 상태 변경 (PATCH /trips/{tripId}/status)
+     */
+    public TripResponse updateTripStatus(Long userId, Long tripId, TripStatusUpdateRequest request) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new TripNotFoundException("여행을 찾을 수 없습니다."));
+
+        // 여행 참가자 여부 확인
+        boolean isMember = tripMemberRepository.existsByTripIdAndUserId(tripId, userId);
+        if (!isMember) {
+            throw new TripNotFoundException("여행에 참여하지 않은 사용자는 상태를 변경할 수 없습니다.");
+        }
+
+        trip.updateStatus(request.status());
+        tripRepository.save(trip);
+
+        return TripResponse.from(trip);
+    }
+
+    /**
+     * 월별 여행 조회 (GET /trips/calendar?year=YYYY&month=MM)
+     * 해당 월과 날짜가 겹치는 모든 여행을 반환
+     */
+    public TripCalendarResponse getTripsByMonth(Long userId, int year, int month) {
+        LocalDate monthStart = LocalDate.of(year, month, 1);
+        LocalDate monthEnd = YearMonth.of(year, month).atEndOfMonth();
+
+        List<Trip> trips = tripRepository
+                .findTripsByUserIdAndPeriod(
+                        userId,
+                        monthStart,
+                        monthEnd
+                );
+
+        List<TripResponse> tripResponses = trips.stream()
+                .map(TripResponse::from)
+                .toList();
+
+        return new TripCalendarResponse(year, month, tripResponses);
+    }
+
+    /**
+     * 다가오는 여행 목록 (GET /trips/upcoming)
+     * 상태가 UPCOMING 인 여행만 반환
+     */
+    public List<TripResponse> getUpcomingTrips(Long userId) {
+        List<Trip> trips = tripRepository
+                .findUpcomingTripsByUserId(
+                        userId,
+                        TripStatus.UPCOMING
+                );
+
+        return trips.stream()
+                .map(TripResponse::from)
+                .toList();
     }
 }
