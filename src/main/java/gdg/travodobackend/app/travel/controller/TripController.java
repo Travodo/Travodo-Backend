@@ -7,6 +7,7 @@ import gdg.travodobackend.app.travel.dto.TripJoinRequest;
 import gdg.travodobackend.app.travel.dto.TripResponse;
 import gdg.travodobackend.app.travel.dto.TripStatusUpdateRequest;
 import gdg.travodobackend.app.travel.service.TripService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,7 +27,7 @@ public class TripController {
     @PostMapping
     public ResponseEntity<TripCreateResponse> createTrip(
             @AuthenticationPrincipal Long userId,
-            @RequestBody TripCreateRequest request
+            @Valid @RequestBody TripCreateRequest request
     ) {
         return ResponseEntity.ok(tripService.createTrip(userId, request));
     }
