@@ -72,7 +72,7 @@ public class CommentService {
         Comment parent = null;
         if (request.getParentId() != null) {
             parent = commentRepository.findByIdAndDeletedFalse(request.getParentId())
-                    .orElseThrow(() -> new IllegalArgumentException("부모ㅌ     댓글을 찾을 수 없습니다"));
+                    .orElseThrow(() -> new IllegalArgumentException("부모 댓글을 찾을 수 없습니다"));
             
             // 대댓글의 부모가 해당 게시글의 댓글이어야 함
             if (!parent.getPost().getId().equals(postId)) {
