@@ -38,7 +38,7 @@ public class Post {
     @Column(name = "trip_id")
     private Long tripId;  // Trip 엔티티와의 연결 (나중에 연동 예정)
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "post_tags", joinColumns = @JoinColumn(name = "post_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "tag")
