@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,9 +49,14 @@ public class PostService {
             }
         }
 
+        // N+1 문제 해결: 사용자가 좋아요한 게시글 ID를 한 번에 조회
+        List<Long> likedPostIds = currentUserId != null 
+            ? postLikeRepository.findPostIdsByUserId(currentUserId)
+            : java.util.Collections.emptyList();
+
         return PostListResponse.builder()
                 .content(postPage.getContent().stream()
-                        .map(post -> convertToSummary(post, currentUserId))
+                        .map(post -> convertToSummary(post, likedPostIds))
                         .collect(Collectors.toList()))
                 .page(postPage.getNumber())
                 .size(postPage.getSize())
@@ -66,7 +72,12 @@ public class PostService {
         Post post = postRepository.findByIdAndDeletedFalse(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다"));
 
-        return convertToResponse(post, currentUserId);
+        // 좋아요 여부 확인
+        boolean isLiked = currentUserId != null 
+            && postLikeRepository.existsByUserAndPost(
+                userRepository.findById(currentUserId).orElse(null), post);
+
+        return convertToResponse(post, isLiked);
     }
 
     // 게시글 작성
@@ -86,7 +97,7 @@ public class PostService {
                 .build();
 
         Post savedPost = postRepository.save(post);
-        return convertToResponse(savedPost, userId);
+        return convertToResponse(savedPost, false);  // 새로 작성한 게시글은 좋아요 안 눌림
     }
 
     // 게시글 수정
@@ -107,7 +118,11 @@ public class PostService {
                 request.getThumbnailUrl()
         );
 
-        return convertToResponse(post, userId);
+        // 좋아요 여부 확인
+        boolean isLiked = postLikeRepository.existsByUserAndPost(
+                userRepository.findById(userId).orElse(null), post);
+
+        return convertToResponse(post, isLiked);
     }
 
     // 게시글 삭제
@@ -162,13 +177,12 @@ public class PostService {
     }
 
     // DTO 변환 메서드들
-    private PostSummary convertToSummary(Post post, Long currentUserId) {
+    private PostSummary convertToSummary(Post post, List<Long> likedPostIds) {
         String summary = post.getContent().length() > SUMMARY_LENGTH
                 ? post.getContent().substring(0, SUMMARY_LENGTH) + "..."
                 : post.getContent();
 
-        boolean isLiked = currentUserId != null && postLikeRepository.existsByUserAndPost(
-                userRepository.findById(currentUserId).orElse(null), post);
+        boolean isLiked = likedPostIds.contains(post.getId());
 
         return PostSummary.builder()
                 .id(post.getId())
@@ -188,10 +202,7 @@ public class PostService {
                 .build();
     }
 
-    private PostResponse convertToResponse(Post post, Long currentUserId) {
-        boolean isLiked = currentUserId != null && postLikeRepository.existsByUserAndPost(
-                userRepository.findById(currentUserId).orElse(null), post);
-
+    private PostResponse convertToResponse(Post post, boolean isLiked) {
         return PostResponse.builder()
                 .id(post.getId())
                 .author(AuthorInfo.builder()

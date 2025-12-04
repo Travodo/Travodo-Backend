@@ -4,8 +4,11 @@ import gdg.travodobackend.app.community.entity.Post;
 import gdg.travodobackend.app.community.entity.PostLike;
 import gdg.travodobackend.app.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -19,5 +22,9 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
 
     // 사용자가 좋아요를 누른 게시글들 확인용
     boolean existsByUserAndPost(User user, Post post);
+    
+    // N+1 문제 해결
+    @Query("SELECT pl.post.id FROM PostLike pl WHERE pl.user.id = :userId")
+    List<Long> findPostIdsByUserId(@Param("userId") Long userId);
 }
 
