@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.List;
 
@@ -32,6 +33,7 @@ public class TripService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String inviteCode = generateUniqueInviteCode(); // 중복 방지 코드 생성
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
 
         Trip trip = Trip.builder()
                 .name(request.name())
@@ -40,6 +42,7 @@ public class TripService {
                 .endDate(request.endDate())
                 .status(TripStatus.UPCOMING)
                 .inviteCode(inviteCode)
+                .inviteCodeExpiresAt(expiresAt)
                 .build();
         tripRepository.save(trip);
 
@@ -62,7 +65,9 @@ public class TripService {
                 .orElseThrow(() -> new RuntimeException("Trip not found"));
 
         String newCode = generateUniqueInviteCode(); // 중복 방지 코드 생성
-        trip.updateInviteCode(newCode);
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
+
+        trip.updateInviteCode(newCode,expiresAt);
         tripRepository.save(trip);
 
         return newCode;
@@ -73,6 +78,10 @@ public class TripService {
 
         Trip trip = tripRepository.findByInviteCode(request.inviteCode())
                 .orElseThrow(() -> new RuntimeException("Invalid invite code"));
+
+        if (trip.isInviteCodeExpired()) {
+            throw new RuntimeException("초대코드가 만료되었습니다. 새 코드를 요청하세요.");
+        }
 
         if (tripMemberRepository.existsByTripIdAndUserId(trip.getId(), userId)) {
             throw new RuntimeException("이미 참가한 여행입니다.");
