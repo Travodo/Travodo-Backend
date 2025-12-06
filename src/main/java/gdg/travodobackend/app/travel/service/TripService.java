@@ -4,6 +4,7 @@ import gdg.travodobackend.app.travel.dto.*;
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.entity.TripMember;
 import gdg.travodobackend.app.travel.entity.TripStatus;
+import gdg.travodobackend.app.travel.repository.PersonalItemRepository;
 import gdg.travodobackend.app.travel.repository.TripMemberRepository;
 import gdg.travodobackend.app.travel.repository.TripRepository;
 import gdg.travodobackend.app.user.entity.User;
@@ -25,6 +26,7 @@ public class TripService {
     private final TripRepository tripRepository;
     private final TripMemberRepository tripMemberRepository;
     private final UserRepository userRepository;
+    private final PersonalItemRepository personalItemRepository;
 
     // 여행 생성
     public TripCreateResponse createTrip(Long userId, TripCreateRequest request) {
@@ -165,5 +167,24 @@ public class TripService {
             code = String.valueOf((int)(Math.random() * 90000) + 10000);
         } while (tripRepository.findByInviteCode(code).isPresent());
         return code;
+    }
+
+    public List<TripMemberResponse> getTripMembers(Long userId, Long tripId) {
+
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new RuntimeException("여행을 찾을 수 없습니다."));
+
+        boolean isMember = tripMemberRepository.existsByTripIdAndUserId(tripId, userId);
+        if (!isMember) {
+            throw new RuntimeException("여행에 참여하지 않은 사용자는 조회할 수 없습니다.");
+        }
+
+        return trip.getMembers().stream()
+                .map(tm -> new TripMemberResponse(
+                        tm.getUser().getId(),
+                        tm.getUser().getNickname(),
+                        tm.isLeader()
+                ))
+                .toList();
     }
 }
