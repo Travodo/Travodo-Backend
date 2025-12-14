@@ -9,6 +9,7 @@ import gdg.travodobackend.app.community.repository.PostRepository;
 import gdg.travodobackend.app.user.entity.User;
 import gdg.travodobackend.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -54,8 +55,14 @@ public class PostService {
             ? postLikeRepository.findPostIdsByUserId(currentUserId)
             : java.util.Collections.emptyList();
 
+        // LAZY 컬렉션 초기화 (트랜잭션 내에서)
+        List<Post> posts = postPage.getContent();
+        for (Post post : posts) {
+            Hibernate.initialize(post.getTags());
+        }
+
         return PostListResponse.builder()
-                .content(postPage.getContent().stream()
+                .content(posts.stream()
                         .map(post -> convertToSummary(post, likedPostIds))
                         .collect(Collectors.toList()))
                 .page(postPage.getNumber())
@@ -71,6 +78,10 @@ public class PostService {
     public PostResponse getPost(Long postId, Long currentUserId) {
         Post post = postRepository.findByIdAndDeletedFalse(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다"));
+
+        // LAZY 컬렉션 초기화 (트랜잭션 내에서)
+        Hibernate.initialize(post.getTags());
+        Hibernate.initialize(post.getImageUrls());
 
         // 좋아요 여부 확인
         boolean isLiked = currentUserId != null 
@@ -97,6 +108,9 @@ public class PostService {
                 .build();
 
         Post savedPost = postRepository.save(post);
+        // LAZY 컬렉션 초기화 (트랜잭션 내에서)
+        Hibernate.initialize(savedPost.getTags());
+        Hibernate.initialize(savedPost.getImageUrls());
         return convertToResponse(savedPost, false);  // 새로 작성한 게시글은 좋아요 안 눌림
     }
 
@@ -117,6 +131,10 @@ public class PostService {
                 request.getImageUrls(),
                 request.getThumbnailUrl()
         );
+
+        // LAZY 컬렉션 초기화 (트랜잭션 내에서)
+        Hibernate.initialize(post.getTags());
+        Hibernate.initialize(post.getImageUrls());
 
         // 좋아요 여부 확인
         boolean isLiked = postLikeRepository.existsByUserAndPost(

@@ -38,14 +38,14 @@ public class Post {
     @Column(name = "trip_id")
     private Long tripId;  // Trip 엔티티와의 연결 (나중에 연동 예정)
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "post_tags", joinColumns = @JoinColumn(name = "post_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "tag")
     @Builder.Default
     private List<TravelTag> tags = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "post_images", joinColumns = @JoinColumn(name = "post_id"))
     @Column(name = "image_url")
     @Builder.Default
