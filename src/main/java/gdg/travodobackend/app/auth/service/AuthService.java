@@ -106,7 +106,7 @@ public class AuthService {
 
         // 새 사용자 생성 (이메일 로그인)
         // 닉네임 중복 확인
-        if (userRepository.existsByNickname(request.getName())) {
+        if (userRepository.existsByNickname(request.getNickname())) {
             throw new IllegalArgumentException("이미 사용 중인 닉네임입니다");
         }
 
@@ -121,7 +121,7 @@ public class AuthService {
         user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .nickname(request.getName())
+                .nickname(request.getNickname())
                 .emailVerified(true)
                 .provider(AuthProvider.EMAIL)
                 .providerId(null)  // 이메일 로그인은 providerId 없음
