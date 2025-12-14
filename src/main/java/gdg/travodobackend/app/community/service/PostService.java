@@ -4,8 +4,11 @@ import gdg.travodobackend.app.community.dto.*;
 import gdg.travodobackend.app.community.entity.Post;
 import gdg.travodobackend.app.community.entity.PostLike;
 import gdg.travodobackend.app.community.entity.TravelTag;
+import gdg.travodobackend.app.community.repository.PostBookmarkRepository;
 import gdg.travodobackend.app.community.repository.PostLikeRepository;
 import gdg.travodobackend.app.community.repository.PostRepository;
+import gdg.travodobackend.app.travel.dto.TripResponse;
+import gdg.travodobackend.app.travel.repository.TripRepository;
 import gdg.travodobackend.app.user.entity.User;
 import gdg.travodobackend.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +30,9 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
+    private final PostBookmarkRepository postBookmarkRepository;
     private final UserRepository userRepository;
+    private final TripRepository tripRepository;
 
     private static final int SUMMARY_LENGTH = 100;
 
@@ -54,6 +59,11 @@ public class PostService {
         List<Long> likedPostIds = currentUserId != null 
             ? postLikeRepository.findPostIdsByUserId(currentUserId)
             : java.util.Collections.emptyList();
+        
+        // N+1 문제 해결: 사용자가 저장한 게시글 ID를 한 번에 조회
+        List<Long> bookmarkedPostIds = currentUserId != null
+            ? postBookmarkRepository.findPostIdsByUserId(currentUserId)
+            : java.util.Collections.emptyList();
 
         // LAZY 컬렉션 초기화 (트랜잭션 내에서)
         List<Post> posts = postPage.getContent();
@@ -63,7 +73,7 @@ public class PostService {
 
         return PostListResponse.builder()
                 .content(posts.stream()
-                        .map(post -> convertToSummary(post, likedPostIds))
+                        .map(post -> convertToSummary(post, likedPostIds, bookmarkedPostIds))
                         .collect(Collectors.toList()))
                 .page(postPage.getNumber())
                 .size(postPage.getSize())
@@ -87,8 +97,13 @@ public class PostService {
         boolean isLiked = currentUserId != null 
             && postLikeRepository.existsByUserAndPost(
                 userRepository.findById(currentUserId).orElse(null), post);
+        
+        // 북마크 여부 확인
+        boolean isBookmarked = currentUserId != null
+            && postBookmarkRepository.existsByUserAndPost(
+                userRepository.findById(currentUserId).orElse(null), post);
 
-        return convertToResponse(post, isLiked);
+        return convertToResponse(post, isLiked, isBookmarked);
     }
 
     // 게시글 작성
@@ -111,7 +126,7 @@ public class PostService {
         // LAZY 컬렉션 초기화 (트랜잭션 내에서)
         Hibernate.initialize(savedPost.getTags());
         Hibernate.initialize(savedPost.getImageUrls());
-        return convertToResponse(savedPost, false);  // 새로 작성한 게시글은 좋아요 안 눌림
+        return convertToResponse(savedPost, false, false);  // 새로 작성한 게시글은 좋아요/북마크 안 눌림
     }
 
     // 게시글 수정
@@ -129,7 +144,8 @@ public class PostService {
                 request.getContent(),
                 request.getTags(),
                 request.getImageUrls(),
-                request.getThumbnailUrl()
+                request.getThumbnailUrl(),
+                request.getTripId()
         );
 
         // LAZY 컬렉션 초기화 (트랜잭션 내에서)
@@ -139,8 +155,12 @@ public class PostService {
         // 좋아요 여부 확인
         boolean isLiked = postLikeRepository.existsByUserAndPost(
                 userRepository.findById(userId).orElse(null), post);
+        
+        // 북마크 여부 확인
+        boolean isBookmarked = postBookmarkRepository.existsByUserAndPost(
+                userRepository.findById(userId).orElse(null), post);
 
-        return convertToResponse(post, isLiked);
+        return convertToResponse(post, isLiked, isBookmarked);
     }
 
     // 게시글 삭제
@@ -195,12 +215,30 @@ public class PostService {
     }
 
     // DTO 변환 메서드들
-    private PostSummary convertToSummary(Post post, List<Long> likedPostIds) {
+    private PostSummary convertToSummary(Post post, List<Long> likedPostIds, List<Long> bookmarkedPostIds) {
         String summary = post.getContent().length() > SUMMARY_LENGTH
                 ? post.getContent().substring(0, SUMMARY_LENGTH) + "..."
                 : post.getContent();
 
         boolean isLiked = likedPostIds.contains(post.getId());
+        boolean isBookmarked = bookmarkedPostIds.contains(post.getId());
+
+        // Trip 정보 조회
+        TripResponse tripResponse = null;
+        if (post.getTripId() != null) {
+            tripResponse = tripRepository.findById(post.getTripId())
+                    .map(trip -> {
+                        // LAZY 컬렉션 초기화
+                        Hibernate.initialize(trip.getMembers());
+                        if (trip.getMembers() != null) {
+                            trip.getMembers().forEach(member -> {
+                                Hibernate.initialize(member.getUser());
+                            });
+                        }
+                        return TripResponse.from(trip);
+                    })
+                    .orElse(null);
+        }
 
         return PostSummary.builder()
                 .id(post.getId())
@@ -211,16 +249,35 @@ public class PostService {
                 .title(post.getTitle())
                 .summary(summary)
                 .tripId(post.getTripId())
+                .trip(tripResponse)
                 .tags(post.getTags())
                 .thumbnailUrl(post.getThumbnailUrl())
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
                 .isLiked(isLiked)
+                .isBookmarked(isBookmarked)
                 .createdAt(post.getCreatedAt())
                 .build();
     }
 
-    private PostResponse convertToResponse(Post post, boolean isLiked) {
+    private PostResponse convertToResponse(Post post, boolean isLiked, boolean isBookmarked) {
+        // Trip 정보 조회
+        TripResponse tripResponse = null;
+        if (post.getTripId() != null) {
+            tripResponse = tripRepository.findById(post.getTripId())
+                    .map(trip -> {
+                        // LAZY 컬렉션 초기화
+                        Hibernate.initialize(trip.getMembers());
+                        if (trip.getMembers() != null) {
+                            trip.getMembers().forEach(member -> {
+                                Hibernate.initialize(member.getUser());
+                            });
+                        }
+                        return TripResponse.from(trip);
+                    })
+                    .orElse(null);
+        }
+
         return PostResponse.builder()
                 .id(post.getId())
                 .author(AuthorInfo.builder()
@@ -230,12 +287,14 @@ public class PostService {
                 .title(post.getTitle())
                 .content(post.getContent())
                 .tripId(post.getTripId())
+                .trip(tripResponse)
                 .tags(post.getTags())
                 .imageUrls(post.getImageUrls())
                 .thumbnailUrl(post.getThumbnailUrl())
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
                 .isLiked(isLiked)
+                .isBookmarked(isBookmarked)
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .build();

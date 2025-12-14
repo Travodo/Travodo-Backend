@@ -22,6 +22,8 @@ public class CommunityController {
 
     private final PostService postService;
     private final CommentService commentService;
+    private final gdg.travodobackend.app.community.service.PostBookmarkService postBookmarkService;
+    private final gdg.travodobackend.app.community.service.PostReportService postReportService;
 
     // 게시글 목록 조회
     @GetMapping("/posts")
@@ -174,6 +176,61 @@ public class CommunityController {
         Long userId = (Long) authentication.getPrincipal();
         commentService.deleteComment(commentId, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    // 게시글 저장
+    @PostMapping("/posts/{postId}/bookmarks")
+    @Operation(summary = "게시글 저장", description = "게시글을 저장합니다")
+    public ResponseEntity<Void> bookmarkPost(
+            @Parameter(description = "게시글 ID")
+            @PathVariable Long postId,
+            Authentication authentication) {
+        
+        Long userId = (Long) authentication.getPrincipal();
+        postBookmarkService.bookmarkPost(userId, postId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    // 게시글 저장 취소
+    @DeleteMapping("/posts/{postId}/bookmarks")
+    @Operation(summary = "게시글 저장 취소", description = "저장한 게시글을 취소합니다")
+    public ResponseEntity<Void> unbookmarkPost(
+            @Parameter(description = "게시글 ID")
+            @PathVariable Long postId,
+            Authentication authentication) {
+        
+        Long userId = (Long) authentication.getPrincipal();
+        postBookmarkService.unbookmarkPost(userId, postId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // 저장한 게시글 목록 조회
+    @GetMapping("/bookmarks")
+    @Operation(summary = "저장한 게시글 목록 조회", description = "저장한 게시글 목록을 조회합니다")
+    public ResponseEntity<PostListResponse> getBookmarkedPosts(
+            @Parameter(description = "페이지 번호 (0부터 시작)")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기")
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication) {
+        
+        Long userId = (Long) authentication.getPrincipal();
+        PostListResponse response = postBookmarkService.getBookmarkedPosts(userId, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    // 게시글 신고
+    @PostMapping("/posts/{postId}/reports")
+    @Operation(summary = "게시글 신고", description = "게시글을 신고합니다")
+    public ResponseEntity<Void> reportPost(
+            @Parameter(description = "게시글 ID")
+            @PathVariable Long postId,
+            @Valid @RequestBody PostReportRequest request,
+            Authentication authentication) {
+        
+        Long userId = (Long) authentication.getPrincipal();
+        postReportService.reportPost(userId, postId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
 

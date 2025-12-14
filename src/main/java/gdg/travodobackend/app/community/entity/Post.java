@@ -99,12 +99,13 @@ public class Post {
     }
 
     // 게시글 수정
-    public void update(String title, String content, List<TravelTag> tags, List<String> imageUrls, String thumbnailUrl) {
+    public void update(String title, String content, List<TravelTag> tags, List<String> imageUrls, String thumbnailUrl, Long tripId) {
         this.title = title;
         this.content = content;
         this.tags = tags != null ? tags : new ArrayList<>();
         this.imageUrls = imageUrls != null ? imageUrls : new ArrayList<>();
         this.thumbnailUrl = thumbnailUrl;
+        this.tripId = tripId;
     }
 
     // 게시글 삭제 (soft delete)
