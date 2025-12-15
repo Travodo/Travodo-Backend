@@ -1,11 +1,6 @@
 package gdg.travodobackend.app.travel.controller;
 
-import gdg.travodobackend.app.travel.dto.TripCalendarResponse;
-import gdg.travodobackend.app.travel.dto.TripCreateRequest;
-import gdg.travodobackend.app.travel.dto.TripCreateResponse;
-import gdg.travodobackend.app.travel.dto.TripJoinRequest;
-import gdg.travodobackend.app.travel.dto.TripResponse;
-import gdg.travodobackend.app.travel.dto.TripStatusUpdateRequest;
+import gdg.travodobackend.app.travel.dto.*;
 import gdg.travodobackend.app.travel.service.TripService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -85,5 +80,14 @@ public class TripController {
             @AuthenticationPrincipal Long userId
     ) {
         return ResponseEntity.ok(tripService.getUpcomingTrips(userId));
+    }
+
+    // 여행자 목록 조회
+    @GetMapping("/{tripId}/members")
+    public ResponseEntity<List<TripMemberResponse>> getTripMembers(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long tripId
+    ) {
+        return ResponseEntity.ok(tripService.getTripMembers(userId, tripId));
     }
 }
