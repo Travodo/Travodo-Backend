@@ -39,9 +39,10 @@ public class TripController {
     // 초대 코드 재발급 (POST /trips/{tripId}/invite-code)
     @PostMapping("/{tripId}/invite-code")
     public ResponseEntity<Map<String, String>> regenerateInviteCode(
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long tripId
     ) {
-        String code = tripService.regenerateInviteCode(tripId);
+        String code = tripService.regenerateInviteCode(userId, tripId);
         return ResponseEntity.ok(Map.of("inviteCode", code));
     }
 
