@@ -197,4 +197,23 @@ public class TripService {
                 ))
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public List<PastTripResponse> getPastTrips(Long userId) {
+
+        return tripRepository.findTripsByUserIdAndStatus(
+                        userId, TripStatus.FINISHED
+                ).stream()
+                .map(trip -> new PastTripResponse(
+                        trip.getId(),
+                        trip.getName(),
+                        trip.getPlace(),
+                        trip.getStartDate(),
+                        trip.getEndDate(),
+                        trip.getMembers().size(),
+                        trip.getColor()
+                ))
+                .toList();
+    }
+
 }

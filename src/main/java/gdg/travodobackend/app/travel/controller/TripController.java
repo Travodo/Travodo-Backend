@@ -91,4 +91,16 @@ public class TripController {
     ) {
         return ResponseEntity.ok(tripService.getTripMembers(userId, tripId));
     }
+
+    @GetMapping("/me/trips")
+    public ResponseEntity<List<PastTripResponse>> getMyTrips(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam String status
+    ) {
+        if ("PAST".equalsIgnoreCase(status)) {
+            return ResponseEntity.ok(tripService.getPastTrips(userId));
+        }
+        throw new IllegalArgumentException("지원하지 않는 status 값입니다");
+    }
+
 }

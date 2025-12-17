@@ -43,4 +43,18 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
             @Param("from") LocalDate from,
             @Param("to") LocalDate to
     );
+
+    @Query("""
+    select distinct t
+    from Trip t
+    join t.members m
+    where m.user.id = :userId
+      and t.status = :status
+    order by t.endDate desc
+""")
+    List<Trip> findTripsByUserIdAndStatus(
+            @Param("userId") Long userId,
+            @Param("status") TripStatus status
+    );
+
 }
