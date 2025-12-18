@@ -5,5 +5,5 @@ package gdg.travodobackend.app.travel.dto;
  */
 public record PersonalItemUpdateRequest(
         String name,
-        Boolean checked   // boolean이 아니라 Boolean이어야 null 체크 가능
+        Boolean checked
 ) {}
