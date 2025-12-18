@@ -4,6 +4,7 @@ import gdg.travodobackend.app.travel.dto.PersonalItemCreateRequest;
 import gdg.travodobackend.app.travel.dto.PersonalItemResponse;
 import gdg.travodobackend.app.travel.dto.PersonalItemUpdateRequest;
 import gdg.travodobackend.app.travel.service.PersonalItemService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,25 +30,25 @@ public class PersonalItemController {
         );
     }
 
-    // 개인 준비물 생성
+    // 개인 준비물 생성 
     @PostMapping
     public ResponseEntity<PersonalItemResponse> createItem(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long tripId,
-            @RequestBody PersonalItemCreateRequest request
+            @Valid @RequestBody PersonalItemCreateRequest request
     ) {
         return ResponseEntity.ok(
                 personalItemService.createItem(userId, tripId, request)
         );
     }
 
-    // 개인 준비물 수정 (이름/체크 상태 일부만 변경하는 PATCH)
+    // 개인 준비물 수정
     @PatchMapping("/{itemId}")
     public ResponseEntity<PersonalItemResponse> updateItem(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long tripId,
             @PathVariable Long itemId,
-            @RequestBody PersonalItemUpdateRequest request
+            @Valid @RequestBody PersonalItemUpdateRequest request
     ) {
         return ResponseEntity.ok(
                 personalItemService.updateItem(userId, tripId, itemId, request)

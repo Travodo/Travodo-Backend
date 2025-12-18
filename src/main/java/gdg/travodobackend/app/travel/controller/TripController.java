@@ -39,9 +39,10 @@ public class TripController {
     // 초대 코드 재발급 (POST /trips/{tripId}/invite-code)
     @PostMapping("/{tripId}/invite-code")
     public ResponseEntity<Map<String, String>> regenerateInviteCode(
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long tripId
     ) {
-        String code = tripService.regenerateInviteCode(tripId);
+        String code = tripService.regenerateInviteCode(userId, tripId);
         return ResponseEntity.ok(Map.of("inviteCode", code));
     }
 
@@ -90,4 +91,16 @@ public class TripController {
     ) {
         return ResponseEntity.ok(tripService.getTripMembers(userId, tripId));
     }
+
+    @GetMapping("/me/trips")
+    public ResponseEntity<List<PastTripResponse>> getMyTrips(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam String status
+    ) {
+        if ("PAST".equalsIgnoreCase(status)) {
+            return ResponseEntity.ok(tripService.getPastTrips(userId));
+        }
+        throw new IllegalArgumentException("지원하지 않는 status 값입니다");
+    }
+
 }

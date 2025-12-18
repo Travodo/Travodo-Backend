@@ -4,7 +4,6 @@ import gdg.travodobackend.app.travel.dto.*;
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.entity.TripMember;
 import gdg.travodobackend.app.travel.entity.TripStatus;
-import gdg.travodobackend.app.travel.repository.PersonalItemRepository;
 import gdg.travodobackend.app.travel.repository.TripMemberRepository;
 import gdg.travodobackend.app.travel.repository.TripRepository;
 import gdg.travodobackend.app.user.entity.User;
@@ -26,10 +25,13 @@ public class TripService {
     private final TripRepository tripRepository;
     private final TripMemberRepository tripMemberRepository;
     private final UserRepository userRepository;
-    private final PersonalItemRepository personalItemRepository;
 
     // 여행 생성
     public TripCreateResponse createTrip(Long userId, TripCreateRequest request) {
+
+        if (request.isDateInvalid()) {
+            throw new RuntimeException("시작 날짜는 종료 날짜보다 늦을 수 없습니다.");
+        }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -62,15 +64,23 @@ public class TripService {
     }
 
     // 초대코드 재발급
-    public String regenerateInviteCode(Long tripId) {
+    public String regenerateInviteCode(Long userId, Long tripId) {
+
+        TripMember member = tripMemberRepository
+                .findByTripIdAndUserId(tripId, userId)
+                .orElseThrow(() -> new RuntimeException("여행 멤버만 초대 코드를 재발급할 수 있습니다."));
+
+        if (!member.isLeader()) {
+            throw new RuntimeException("여행 방장만 초대 코드를 재발급할 수 있습니다.");
+        }
+
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new RuntimeException("Trip not found"));
 
-        String newCode = generateUniqueInviteCode(); // 중복 방지 코드 생성
+        String newCode = generateUniqueInviteCode();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
 
-        trip.updateInviteCode(newCode,expiresAt);
-        tripRepository.save(trip);
+        trip.updateInviteCode(newCode, expiresAt);
 
         return newCode;
     }
@@ -187,4 +197,23 @@ public class TripService {
                 ))
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public List<PastTripResponse> getPastTrips(Long userId) {
+
+        return tripRepository.findTripsByUserIdAndStatus(
+                        userId, TripStatus.FINISHED
+                ).stream()
+                .map(trip -> new PastTripResponse(
+                        trip.getId(),
+                        trip.getName(),
+                        trip.getPlace(),
+                        trip.getStartDate(),
+                        trip.getEndDate(),
+                        trip.getMembers().size(),
+                        trip.getColor()
+                ))
+                .toList();
+    }
+
 }
