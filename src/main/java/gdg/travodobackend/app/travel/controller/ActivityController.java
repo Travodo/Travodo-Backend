@@ -1,12 +1,15 @@
 package gdg.travodobackend.app.travel.controller;
 
-import gdg.travodobackend.app.travel.dto.*;
+import gdg.travodobackend.app.travel.dto.activity.*;
 import gdg.travodobackend.app.travel.service.ActivityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -62,5 +65,15 @@ public class ActivityController {
         return ResponseEntity.ok(
                 activityService.updateStatus(userId, tripId, activityId, request)
         );
+    }
+
+    // 오늘 일정 조회
+    @GetMapping
+    public ActivityDayResponse getActivitiesByDate(
+            @PathVariable Long tripId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @AuthenticationPrincipal Long userId
+    ) {
+        return activityService.getActivitiesByDate(userId, tripId, date);
     }
 }

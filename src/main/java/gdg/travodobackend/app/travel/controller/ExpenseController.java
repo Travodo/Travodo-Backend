@@ -1,6 +1,6 @@
 package gdg.travodobackend.app.travel.controller;
 
-import gdg.travodobackend.app.travel.dto.*;
+import gdg.travodobackend.app.travel.dto.expense.*;
 import gdg.travodobackend.app.travel.service.ExpenseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

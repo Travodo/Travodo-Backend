@@ -33,4 +33,8 @@ public class Activity {
     public void updateStatus(ActivityStatus status) {
         this.status = status;
     }
+
+    private String placeName;
+    private Double latitude;
+    private Double longitude;
 }

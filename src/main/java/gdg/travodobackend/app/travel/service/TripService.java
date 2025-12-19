@@ -1,6 +1,6 @@
 package gdg.travodobackend.app.travel.service;
 
-import gdg.travodobackend.app.travel.dto.*;
+import gdg.travodobackend.app.travel.dto.trip.*;
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.entity.TripMember;
 import gdg.travodobackend.app.travel.entity.TripStatus;
@@ -214,6 +214,26 @@ public class TripService {
                         trip.getColor()
                 ))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public CurrentTripResponse getCurrentTrip(Long userId) {
+
+        return tripMemberRepository
+                .findByUserIdAndTripStatus(userId, TripStatus.ONGOING)
+                .map(tripMember -> {
+                    Trip trip = tripMember.getTrip();
+                    return new CurrentTripResponse(
+                            trip.getId(),
+                            trip.getName(),
+                            trip.getStatus(),
+                            trip.getStartDate(),
+                            trip.getEndDate()
+                    );
+                })
+                .orElseThrow(() ->
+                        new RuntimeException("아직 진행 중인 여행이 없습니다.")
+                );
     }
 
 }

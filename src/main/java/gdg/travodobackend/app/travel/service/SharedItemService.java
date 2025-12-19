@@ -1,8 +1,8 @@
 package gdg.travodobackend.app.travel.service;
 
-import gdg.travodobackend.app.travel.dto.SharedItemCreateRequest;
-import gdg.travodobackend.app.travel.dto.SharedItemResponse;
-import gdg.travodobackend.app.travel.dto.SharedItemUpdateRequest;
+import gdg.travodobackend.app.travel.dto.item.shared.SharedItemCreateRequest;
+import gdg.travodobackend.app.travel.dto.item.shared.SharedItemResponse;
+import gdg.travodobackend.app.travel.dto.item.shared.SharedItemUpdateRequest;
 import gdg.travodobackend.app.travel.entity.SharedItem;
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.repository.SharedItemRepository;

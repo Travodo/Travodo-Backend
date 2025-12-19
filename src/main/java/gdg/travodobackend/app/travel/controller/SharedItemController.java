@@ -1,8 +1,8 @@
 package gdg.travodobackend.app.travel.controller;
 
-import gdg.travodobackend.app.travel.dto.SharedItemCreateRequest;
-import gdg.travodobackend.app.travel.dto.SharedItemResponse;
-import gdg.travodobackend.app.travel.dto.SharedItemUpdateRequest;
+import gdg.travodobackend.app.travel.dto.item.shared.SharedItemCreateRequest;
+import gdg.travodobackend.app.travel.dto.item.shared.SharedItemResponse;
+import gdg.travodobackend.app.travel.dto.item.shared.SharedItemUpdateRequest;
 import gdg.travodobackend.app.travel.service.SharedItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
