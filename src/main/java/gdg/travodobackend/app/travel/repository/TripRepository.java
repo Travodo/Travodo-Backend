@@ -2,7 +2,9 @@ package gdg.travodobackend.app.travel.repository;
 
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.entity.TripStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,7 +14,9 @@ import java.util.Optional;
 
 public interface TripRepository extends JpaRepository<Trip, Long> {
 
-    Optional<Trip> findByInviteCode(String inviteCode);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select t from Trip t where t.inviteCode = :inviteCode")
+    Optional<Trip> findByInviteCodeForUpdate(@Param("inviteCode") String inviteCode);
 
     // 다가오는 여행 (UPCOMING) 조회
     @Query("""

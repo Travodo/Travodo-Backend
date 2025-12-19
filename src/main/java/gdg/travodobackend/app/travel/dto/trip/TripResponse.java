@@ -13,7 +13,8 @@ public record TripResponse(
         LocalDate endDate,
         TripStatus status,
         Integer dDay,
-        String color
+        String color,
+        Integer maxMembers
 ) {
     public static TripResponse from(Trip trip) {
         return new TripResponse(
@@ -24,7 +25,8 @@ public record TripResponse(
                 trip.getEndDate(),
                 trip.getStatus(),
                 calculateDDay(trip),
-                trip.getColor()
+                trip.getColor(),
+                trip.getMaxMembers()
         );
     }
 
