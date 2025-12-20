@@ -60,9 +60,11 @@ jwt:
     secret: ${JWT_SECRET:your-secret-key-change-this-in-production-use-long-random-string}
     expiration: 86400000
 
-# AWS S3 기본 설정
+# AWS S3 설정 (개발 환경 기본값)
 aws:
     s3:
         access-key: ${AWS_ACCESS_KEY:}
         secret-key: ${AWS_SECRET_KEY:}
+        bucket-name: ${AWS_S3_BUCKET_NAME:travodo-s3}
         base-url: ${AWS_S3_BASE_URL:}
+        region: ${AWS_S3_REGION:ap-northeast-2}
