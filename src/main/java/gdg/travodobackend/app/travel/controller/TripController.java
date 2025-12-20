@@ -103,4 +103,14 @@ public class TripController {
         throw new IllegalArgumentException("지원하지 않는 status 값입니다");
     }
 
+    // 진행중인 여행 조회
+    @GetMapping("/current")
+    public Map<String, CurrentTripResponse> getCurrentTrip(
+            @AuthenticationPrincipal Long userId
+    ) {
+        return Map.of(
+                "trip",
+                tripService.getCurrentTrip(userId)
+        );
+    }
 }

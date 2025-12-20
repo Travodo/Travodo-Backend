@@ -1,11 +1,9 @@
 package gdg.travodobackend.app.travel.dto;
 
 import gdg.travodobackend.app.travel.entity.Trip;
-import gdg.travodobackend.app.travel.entity.TripMember;
 import gdg.travodobackend.app.travel.entity.TripStatus;
 
 import java.time.LocalDate;
-import java.util.List;
 
 public record TripResponse(
         Long id,
@@ -16,17 +14,9 @@ public record TripResponse(
         TripStatus status,
         Integer dDay,
         String color,
-        List<TripMemberInfo> members  // 동행자 정보 추가
+        Integer maxMembers
 ) {
     public static TripResponse from(Trip trip) {
-        List<TripMemberInfo> members = trip.getMembers().stream()
-                .map(member -> TripMemberInfo.builder()
-                        .id(member.getUser().getId())
-                        .nickname(member.getUser().getNickname())
-                        .isLeader(member.isLeader())
-                        .build())
-                .toList();
-
         return new TripResponse(
                 trip.getId(),
                 trip.getName(),
@@ -36,7 +26,7 @@ public record TripResponse(
                 trip.getStatus(),
                 calculateDDay(trip),
                 trip.getColor(),
-                members
+                trip.getMaxMembers()
         );
     }
 

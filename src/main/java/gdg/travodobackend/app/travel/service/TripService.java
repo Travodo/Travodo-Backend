@@ -26,6 +26,17 @@ public class TripService {
     private final TripMemberRepository tripMemberRepository;
     private final UserRepository userRepository;
 
+    private static final List<String> TRIP_COLORS = List.of(
+            "#EE8787", "#FFD2C2", "#EAAF4F", "#FFE386",
+            "#A4C664", "#B8CDFF", "#769FFF", "#506CAD"
+    );
+
+    private String pickRandomColor() {
+        return TRIP_COLORS.get(
+                (int) (Math.random() * TRIP_COLORS.size())
+        );
+    }
+
     // 여행 생성
     public TripCreateResponse createTrip(Long userId, TripCreateRequest request) {
 
@@ -47,6 +58,8 @@ public class TripService {
                 .status(TripStatus.UPCOMING)
                 .inviteCode(inviteCode)
                 .inviteCodeExpiresAt(expiresAt)
+                .color(pickRandomColor())
+                .maxMembers(request.maxMembers())
                 .build();
         tripRepository.save(trip);
 
@@ -86,13 +99,18 @@ public class TripService {
     }
 
     // 여행 참가
+    @Transactional
     public TripResponse joinTrip(Long userId, TripJoinRequest request) {
 
-        Trip trip = tripRepository.findByInviteCode(request.inviteCode())
+        Trip trip = tripRepository.findByInviteCodeForUpdate(request.inviteCode())
                 .orElseThrow(() -> new RuntimeException("Invalid invite code"));
 
         if (trip.isInviteCodeExpired()) {
-            throw new RuntimeException("초대코드가 만료되었습니다. 새 코드를 요청하세요.");
+            throw new RuntimeException("초대코드가 만료되었습니다.");
+        }
+
+        if (trip.isFull()) {
+            throw new RuntimeException("여행 인원이 가득 찼습니다.");
         }
 
         if (tripMemberRepository.existsByTripIdAndUserId(trip.getId(), userId)) {
@@ -107,6 +125,7 @@ public class TripService {
                 .user(user)
                 .isLeader(false)
                 .build();
+
         tripMemberRepository.save(member);
 
         return TripResponse.from(trip);
@@ -175,7 +194,7 @@ public class TripService {
         String code;
         do {
             code = String.valueOf((int)(Math.random() * 90000) + 10000);
-        } while (tripRepository.findByInviteCode(code).isPresent());
+        } while (tripRepository.findByInviteCodeForUpdate(code).isPresent());
         return code;
     }
 
@@ -214,6 +233,26 @@ public class TripService {
                         trip.getColor()
                 ))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public CurrentTripResponse getCurrentTrip(Long userId) {
+
+        return tripMemberRepository
+                .findByUserIdAndTripStatus(userId, TripStatus.ONGOING)
+                .map(tripMember -> {
+                    Trip trip = tripMember.getTrip();
+                    return new CurrentTripResponse(
+                            trip.getId(),
+                            trip.getName(),
+                            trip.getStatus(),
+                            trip.getStartDate(),
+                            trip.getEndDate()
+                    );
+                })
+                .orElseThrow(() ->
+                        new RuntimeException("아직 진행 중인 여행이 없습니다.")
+                );
     }
 
 }
