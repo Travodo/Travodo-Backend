@@ -26,7 +26,7 @@ spring:
         show-sql: false
         open-in-view: false
 
-      # localDate Jackson설정
+        # localDate Jackson설정
         jackson:
             date-format: yyyy-MM-dd
             time-zone: Asia/Seoul
