@@ -9,9 +9,11 @@ import gdg.travodobackend.app.community.repository.PostLikeRepository;
 import gdg.travodobackend.app.community.repository.PostRepository;
 import gdg.travodobackend.app.travel.dto.TripResponse;
 import gdg.travodobackend.app.travel.repository.TripRepository;
+import gdg.travodobackend.app.upload.service.S3Service;
 import gdg.travodobackend.app.user.entity.User;
 import gdg.travodobackend.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,10 +21,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -33,6 +39,7 @@ public class PostService {
     private final PostBookmarkRepository postBookmarkRepository;
     private final UserRepository userRepository;
     private final TripRepository tripRepository;
+    private final S3Service s3Service;
 
     private static final int SUMMARY_LENGTH = 100;
 
@@ -106,11 +113,32 @@ public class PostService {
         return convertToResponse(post, isLiked, isBookmarked);
     }
 
-    // 게시글 작성
+    // 게시글 작성 (이미지 파일 포함)
     @Transactional
-    public PostResponse createPost(Long userId, PostRequest request) {
+    public PostResponse createPost(Long userId, PostRequest request, List<MultipartFile> imageFiles) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
+
+        // 이미지 파일이 있으면 S3에 업로드
+        List<String> imageUrls = new ArrayList<>();
+        if (imageFiles != null && !imageFiles.isEmpty()) {
+            try {
+                imageUrls = s3Service.uploadImages(imageFiles, "community");
+                log.info("게시글 작성 시 {}개의 이미지 업로드 완료", imageUrls.size());
+            } catch (Exception e) {
+                log.error("이미지 업로드 실패: {}", e.getMessage(), e);
+                throw new IllegalArgumentException("이미지 업로드에 실패했습니다: " + e.getMessage());
+            }
+        } else if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            // 이미지 파일이 없고 URL이 제공된 경우
+            imageUrls = request.getImageUrls();
+        }
+
+        // 썸네일 URL 설정 (첫 번째 이미지를 썸네일로 사용)
+        String thumbnailUrl = request.getThumbnailUrl();
+        if (thumbnailUrl == null && !imageUrls.isEmpty()) {
+            thumbnailUrl = imageUrls.get(0);
+        }
 
         Post post = Post.builder()
                 .author(user)
@@ -118,8 +146,8 @@ public class PostService {
                 .content(request.getContent())
                 .tripId(request.getTripId())
                 .tags(request.getTags())
-                .imageUrls(request.getImageUrls() != null ? request.getImageUrls() : java.util.Collections.emptyList())
-                .thumbnailUrl(request.getThumbnailUrl())
+                .imageUrls(imageUrls)
+                .thumbnailUrl(thumbnailUrl)
                 .build();
 
         Post savedPost = postRepository.save(post);
@@ -129,9 +157,9 @@ public class PostService {
         return convertToResponse(savedPost, false, false);  // 새로 작성한 게시글은 좋아요/북마크 안 눌림
     }
 
-    // 게시글 수정
+    // 게시글 수정 (이미지 파일 포함)
     @Transactional
-    public PostResponse updatePost(Long postId, Long userId, PostRequest request) {
+    public PostResponse updatePost(Long postId, Long userId, PostRequest request, List<MultipartFile> imageFiles) {
         Post post = postRepository.findByIdAndDeletedFalse(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다"));
 
@@ -139,12 +167,38 @@ public class PostService {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다");
         }
 
+        // 이미지 파일이 있으면 S3에 업로드
+        List<String> imageUrls = new ArrayList<>();
+        if (imageFiles != null && !imageFiles.isEmpty()) {
+            try {
+                imageUrls = s3Service.uploadImages(imageFiles, "community");
+                log.info("게시글 수정 시 {}개의 이미지 업로드 완료", imageUrls.size());
+            } catch (Exception e) {
+                log.error("이미지 업로드 실패: {}", e.getMessage(), e);
+                throw new IllegalArgumentException("이미지 업로드에 실패했습니다: " + e.getMessage());
+            }
+        } else if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            // 이미지 파일이 없고 URL이 제공된 경우
+            imageUrls = request.getImageUrls();
+        } else {
+            // 둘 다 없으면 기존 이미지 유지
+            imageUrls = post.getImageUrls();
+        }
+
+        // 썸네일 URL 설정
+        String thumbnailUrl = request.getThumbnailUrl();
+        if (thumbnailUrl == null && !imageUrls.isEmpty()) {
+            thumbnailUrl = imageUrls.get(0);
+        } else if (thumbnailUrl == null) {
+            thumbnailUrl = post.getThumbnailUrl();
+        }
+
         post.update(
                 request.getTitle(),
                 request.getContent(),
                 request.getTags(),
-                request.getImageUrls(),
-                request.getThumbnailUrl(),
+                imageUrls,
+                thumbnailUrl,
                 request.getTripId()
         );
 
