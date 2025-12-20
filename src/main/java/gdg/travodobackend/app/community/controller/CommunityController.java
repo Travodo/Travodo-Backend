@@ -10,9 +10,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/community")
@@ -57,29 +61,77 @@ public class CommunityController {
         return ResponseEntity.ok(response);
     }
 
-    // 게시글 작성
-    @PostMapping("/posts")
-    @Operation(summary = "게시글 작성", description = "새로운 게시글을 작성합니다")
+    // 게시글 작성 (이미지 파일 포함 가능)
+    @PostMapping(value = "/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "게시글 작성", description = "새로운 게시글을 작성합니다. 이미지 파일을 함께 업로드할 수 있습니다.")
     public ResponseEntity<PostResponse> createPost(
-            @Valid @RequestBody PostRequest request,
+            @Parameter(description = "제목")
+            @RequestParam("title") String title,
+            @Parameter(description = "내용")
+            @RequestParam("content") String content,
+            @Parameter(description = "여행 유형 태그 (SOLO, FRIEND, COUPLE, FAMILY, RELAXATION)")
+            @RequestParam("tags") List<TravelTag> tags,
+            @Parameter(description = "여행 ID (선택사항)")
+            @RequestParam(value = "tripId", required = false) Long tripId,
+            @Parameter(description = "이미지 파일 목록 (선택사항, 파일이 없으면 imageUrls 사용)")
+            @RequestParam(value = "images", required = false) List<MultipartFile> imageFiles,
+            @Parameter(description = "이미지 URL 목록 (선택사항, images가 없을 때 사용)")
+            @RequestParam(value = "imageUrls", required = false) List<String> imageUrls,
+            @Parameter(description = "썸네일 URL (선택사항)")
+            @RequestParam(value = "thumbnailUrl", required = false) String thumbnailUrl,
             Authentication authentication) {
         
         Long userId = (Long) authentication.getPrincipal();
-        PostResponse response = postService.createPost(userId, request);
+        
+        // PostRequest 생성
+        PostRequest request = PostRequest.builder()
+                .title(title)
+                .content(content)
+                .tags(tags)
+                .tripId(tripId)
+                .imageUrls(imageUrls)
+                .thumbnailUrl(thumbnailUrl)
+                .build();
+        
+        PostResponse response = postService.createPost(userId, request, imageFiles);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // 게시글 수정
-    @PutMapping("/posts/{postId}")
-    @Operation(summary = "게시글 수정", description = "게시글을 수정합니다")
+    // 게시글 수정 (이미지 파일 포함 가능)
+    @PutMapping(value = "/posts/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "게시글 수정", description = "게시글을 수정합니다. 이미지 파일을 함께 업로드할 수 있습니다.")
     public ResponseEntity<PostResponse> updatePost(
             @Parameter(description = "게시글 ID")
             @PathVariable Long postId,
-            @Valid @RequestBody PostRequest request,
+            @Parameter(description = "제목")
+            @RequestParam("title") String title,
+            @Parameter(description = "내용")
+            @RequestParam("content") String content,
+            @Parameter(description = "여행 유형 태그")
+            @RequestParam("tags") List<TravelTag> tags,
+            @Parameter(description = "여행 ID (선택사항)")
+            @RequestParam(value = "tripId", required = false) Long tripId,
+            @Parameter(description = "이미지 파일 목록 (선택사항)")
+            @RequestParam(value = "images", required = false) List<MultipartFile> imageFiles,
+            @Parameter(description = "이미지 URL 목록 (선택사항)")
+            @RequestParam(value = "imageUrls", required = false) List<String> imageUrls,
+            @Parameter(description = "썸네일 URL (선택사항)")
+            @RequestParam(value = "thumbnailUrl", required = false) String thumbnailUrl,
             Authentication authentication) {
         
         Long userId = (Long) authentication.getPrincipal();
-        PostResponse response = postService.updatePost(postId, userId, request);
+        
+        // PostRequest 생성
+        PostRequest request = PostRequest.builder()
+                .title(title)
+                .content(content)
+                .tags(tags)
+                .tripId(tripId)
+                .imageUrls(imageUrls)
+                .thumbnailUrl(thumbnailUrl)
+                .build();
+        
+        PostResponse response = postService.updatePost(postId, userId, request, imageFiles);
         return ResponseEntity.ok(response);
     }
 
