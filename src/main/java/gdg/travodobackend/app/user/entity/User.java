@@ -46,6 +46,22 @@ public class User {
     @Builder.Default
     private Boolean active = true;
 
+    @Column(name = "profile_image_url", length = 500)
+    private String profileImageUrl;
+
+    @Column(name = "name", length = 50)
+    private String name;  // 이름
+
+    @Column(name = "birth_date")
+    private java.time.LocalDate birthDate;  // 생년월일
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender", length = 10)
+    private Gender gender;  // 성별
+
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;  // 연락처
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -72,6 +88,45 @@ public class User {
      */
     public void linkSocialProvider(String providerId) {
         this.providerId = providerId;
+    }
+
+    /**
+     * 닉네임 업데이트
+     */
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    /**
+     * 프로필 이미지 URL 업데이트
+     */
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    /**
+     * 프로필 이미지 삭제
+     */
+    public void deleteProfileImage() {
+        this.profileImageUrl = null;
+    }
+
+    /**
+     * 프로필 정보 업데이트
+     */
+    public void updateProfile(String name, java.time.LocalDate birthDate, Gender gender, String phoneNumber) {
+        if (name != null) {
+            this.name = name;
+        }
+        if (birthDate != null) {
+            this.birthDate = birthDate;
+        }
+        if (gender != null) {
+            this.gender = gender;
+        }
+        if (phoneNumber != null) {
+            this.phoneNumber = phoneNumber;
+        }
     }
 }
 

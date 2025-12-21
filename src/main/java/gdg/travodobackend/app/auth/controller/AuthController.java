@@ -149,5 +149,15 @@ public class AuthController {
         AuthResponse response = socialAuthService.linkSocialAccount(email, provider, providerId);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/logout")
+    @Operation(summary = "로그아웃", description = "현재 로그인한 사용자를 로그아웃합니다")
+    public ResponseEntity<Map<String, String>> logout(Authentication authentication) {
+        // JWT는 stateless이므로 클라이언트에서 토큰을 삭제하면 됩니다.
+        // 필요시 토큰 블랙리스트 기능을 추가할 수 있습니다.
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "로그아웃되었습니다");
+        return ResponseEntity.ok(response);
+    }
 }
 
