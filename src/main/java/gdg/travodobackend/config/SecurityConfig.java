@@ -50,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/health/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll() // WebSocket 연결 허용
                         .requestMatchers("/error").permitAll()
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
