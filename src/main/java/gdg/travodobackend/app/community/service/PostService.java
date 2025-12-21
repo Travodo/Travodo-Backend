@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -351,6 +350,36 @@ public class PostService {
                 .isBookmarked(isBookmarked)
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
+                .build();
+    }
+
+    // 내가 쓴 글 목록 조회
+    public PostListResponse getMyPosts(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Post> postPage = postRepository.findByAuthorIdAndDeletedFalseOrderByCreatedAtDesc(userId, pageable);
+
+        // N+1 문제 해결: 사용자가 좋아요한 게시글 ID를 한 번에 조회
+        List<Long> likedPostIds = postLikeRepository.findPostIdsByUserId(userId);
+        
+        // N+1 문제 해결: 사용자가 저장한 게시글 ID를 한 번에 조회
+        List<Long> bookmarkedPostIds = postBookmarkRepository.findPostIdsByUserId(userId);
+
+        // LAZY 컬렉션 초기화 (트랜잭션 내에서)
+        List<Post> posts = postPage.getContent();
+        for (Post post : posts) {
+            Hibernate.initialize(post.getTags());
+        }
+
+        return PostListResponse.builder()
+                .content(posts.stream()
+                        .map(post -> convertToSummary(post, likedPostIds, bookmarkedPostIds))
+                        .collect(Collectors.toList()))
+                .page(postPage.getNumber())
+                .size(postPage.getSize())
+                .totalElements(postPage.getTotalElements())
+                .totalPages(postPage.getTotalPages())
+                .hasNext(postPage.hasNext())
+                .hasPrevious(postPage.hasPrevious())
                 .build();
     }
 
