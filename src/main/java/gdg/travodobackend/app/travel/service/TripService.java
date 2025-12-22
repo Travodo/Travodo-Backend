@@ -25,6 +25,7 @@ public class TripService {
     private final TripRepository tripRepository;
     private final TripMemberRepository tripMemberRepository;
     private final UserRepository userRepository;
+    private final TripMapService tripMapService;
 
     private static final List<String> TRIP_COLORS = List.of(
             "#EE8787", "#FFD2C2", "#EAAF4F", "#FFE386",
@@ -69,6 +70,7 @@ public class TripService {
                 .isLeader(true)
                 .build();
         tripMemberRepository.save(leader);
+        tripMapService.ensureMemberLocationExists(trip, user);
 
         return new TripCreateResponse(
                 TripResponse.from(trip),
@@ -127,6 +129,7 @@ public class TripService {
                 .build();
 
         tripMemberRepository.save(member);
+        tripMapService.ensureMemberLocationExists(trip, user);
 
         return TripResponse.from(trip);
     }

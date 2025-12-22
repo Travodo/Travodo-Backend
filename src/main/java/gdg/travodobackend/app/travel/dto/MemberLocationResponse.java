@@ -7,5 +7,6 @@ public record MemberLocationResponse(
         String nickname,
         double latitude,
         double longitude,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        String color
 ) {}

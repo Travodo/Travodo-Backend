@@ -11,18 +11,21 @@ public record MapPointDto(
         String status,
 
         Double latitude,
-        Double longitude
+        Double longitude,
+
+        String color
 ) {
 
     public static MapPointDto member(
             Long memberId, String nickname,
-            Double latitude, Double longitude
+            Double latitude, Double longitude,
+            String color
     ) {
         return new MapPointDto(
                 "MEMBER",
                 memberId, nickname,
                 null, null, null,
-                latitude, longitude
+                latitude, longitude, color
         );
     }
 
@@ -34,7 +37,7 @@ public record MapPointDto(
                 "ACTIVITY",
                 null, null,
                 activityId, title, status,
-                latitude, longitude
+                latitude, longitude,null
         );
     }
 }
