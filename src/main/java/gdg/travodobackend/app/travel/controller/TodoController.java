@@ -24,7 +24,7 @@ import java.util.List;
 @RequestMapping("/api/trips/{tripId}/todo")
 public class TodoController {
     private final TodoService todoService;
-
+    // ㅁㄴㅇㄹ
     @GetMapping
     public ResponseEntity<List<TodoResponse>> getTodos(
             @AuthenticationPrincipal Long userId,

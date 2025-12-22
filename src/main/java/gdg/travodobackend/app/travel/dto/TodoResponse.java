@@ -2,6 +2,7 @@ package gdg.travodobackend.app.travel.dto;
 
 import gdg.travodobackend.app.travel.entity.Todo;
 
+// ㅁㄴㅇㄹ
 public record TodoResponse(
         Long id,
         String title,
