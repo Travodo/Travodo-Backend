@@ -58,6 +58,23 @@ public class TripController {
     }
 
     @Operation(
+            summary = "초대 코드 조회",
+            description = "여행 멤버가 현재 초대 코드를 조회합니다. (재발급 X)"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "403", description = "여행 멤버가 아님")
+    })
+    @GetMapping("/{tripId}/invite-code")
+    public ResponseEntity<TripInviteCodeResponse> getInviteCode(
+            @AuthenticationPrincipal Long userId,
+            @Parameter(description = "여행 ID", example = "1")
+            @PathVariable Long tripId
+    ) {
+        return ResponseEntity.ok(tripService.getInviteCode(userId, tripId));
+    }
+
+    @Operation(
             summary = "초대 코드로 여행 참가",
             description = "초대 코드를 이용해 여행에 참가합니다."
     )

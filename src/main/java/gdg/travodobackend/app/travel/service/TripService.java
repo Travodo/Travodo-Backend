@@ -8,6 +8,7 @@ import gdg.travodobackend.app.travel.repository.TripMemberRepository;
 import gdg.travodobackend.app.travel.repository.TripRepository;
 import gdg.travodobackend.app.user.entity.User;
 import gdg.travodobackend.app.user.repository.UserRepository;
+import gdg.travodobackend.global.exception.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,10 +82,10 @@ public class TripService {
 
         TripMember member = tripMemberRepository
                 .findByTripIdAndUserId(tripId, userId)
-                .orElseThrow(() -> new RuntimeException("여행 멤버만 초대 코드를 재발급할 수 있습니다."));
+                .orElseThrow(() -> new ForbiddenException("여행 멤버만 초대 코드를 재발급할 수 있습니다."));
 
         if (!member.isLeader()) {
-            throw new RuntimeException("여행 방장만 초대 코드를 재발급할 수 있습니다.");
+            throw new ForbiddenException("여행 방장만 초대 코드를 재발급할 수 있습니다.");
         }
 
         Trip trip = tripRepository.findById(tripId)
@@ -96,6 +97,27 @@ public class TripService {
         trip.updateInviteCode(newCode, expiresAt);
 
         return newCode;
+    }
+
+    // 초대코드 조회 (재발급 없이 현재 코드 반환)
+    @Transactional(readOnly = true)
+    public TripInviteCodeResponse getInviteCode(Long userId, Long tripId) {
+        TripMember member = tripMemberRepository
+                .findByTripIdAndUserId(tripId, userId)
+                .orElseThrow(() -> new ForbiddenException("여행 멤버만 초대 코드를 조회할 수 있습니다."));
+
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new RuntimeException("Trip not found"));
+
+        boolean expired = trip.isInviteCodeExpired();
+        boolean canRegenerate = member.isLeader();
+
+        return new TripInviteCodeResponse(
+                trip.getInviteCode(),
+                trip.getInviteCodeExpiresAt(),
+                expired,
+                canRegenerate
+        );
     }
 
     // 여행 참가
