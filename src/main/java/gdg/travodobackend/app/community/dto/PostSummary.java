@@ -1,7 +1,7 @@
 package gdg.travodobackend.app.community.dto;
 
 import gdg.travodobackend.app.community.entity.TravelTag;
-import gdg.travodobackend.app.travel.dto.TripResponse;
+import gdg.travodobackend.app.travel.dto.trip.TripResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

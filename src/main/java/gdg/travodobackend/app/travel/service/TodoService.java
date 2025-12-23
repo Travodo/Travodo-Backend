@@ -1,8 +1,8 @@
 package gdg.travodobackend.app.travel.service;
 
-import gdg.travodobackend.app.travel.dto.TodoCreateRequest;
-import gdg.travodobackend.app.travel.dto.TodoResponse;
-import gdg.travodobackend.app.travel.dto.TodoUpdateRequest;
+import gdg.travodobackend.app.travel.dto.todo.TodoCreateRequest;
+import gdg.travodobackend.app.travel.dto.todo.TodoResponse;
+import gdg.travodobackend.app.travel.dto.todo.TodoUpdateRequest;
 import gdg.travodobackend.app.travel.entity.Todo;
 import gdg.travodobackend.app.travel.entity.TodoStatus;
 import gdg.travodobackend.app.travel.entity.Trip;

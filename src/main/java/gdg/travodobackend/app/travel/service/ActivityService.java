@@ -1,6 +1,6 @@
 package gdg.travodobackend.app.travel.service;
 
-import gdg.travodobackend.app.travel.dto.*;
+import gdg.travodobackend.app.travel.dto.activity.*;
 import gdg.travodobackend.app.travel.entity.*;
 import gdg.travodobackend.app.travel.repository.*;
 import lombok.RequiredArgsConstructor;

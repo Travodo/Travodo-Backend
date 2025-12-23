@@ -1,9 +1,9 @@
 package gdg.travodobackend.app.travel.service;
 
-import gdg.travodobackend.app.travel.dto.LocationUpdateRequest;
-import gdg.travodobackend.app.travel.dto.MapPointDto;
-import gdg.travodobackend.app.travel.dto.MapPointsResponse;
-import gdg.travodobackend.app.travel.dto.MemberLocationResponse;
+import gdg.travodobackend.app.travel.dto.map.LocationUpdateRequest;
+import gdg.travodobackend.app.travel.dto.map.MapPointDto;
+import gdg.travodobackend.app.travel.dto.map.MapPointsResponse;
+import gdg.travodobackend.app.travel.dto.map.MemberLocationResponse;
 import gdg.travodobackend.app.travel.entity.MapColor;
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.entity.TripMemberLocation;
