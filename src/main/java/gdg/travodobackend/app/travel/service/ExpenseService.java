@@ -1,6 +1,6 @@
 package gdg.travodobackend.app.travel.service;
 
-import gdg.travodobackend.app.travel.dto.*;
+import gdg.travodobackend.app.travel.dto.expense.*;
 import gdg.travodobackend.app.travel.entity.Expense;
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.repository.ExpenseRepository;

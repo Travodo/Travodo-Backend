@@ -1,8 +1,8 @@
 package gdg.travodobackend.app.travel.controller;
 
-import gdg.travodobackend.app.travel.dto.TodoCreateRequest;
-import gdg.travodobackend.app.travel.dto.TodoResponse;
-import gdg.travodobackend.app.travel.dto.TodoUpdateRequest;
+import gdg.travodobackend.app.travel.dto.todo.TodoCreateRequest;
+import gdg.travodobackend.app.travel.dto.todo.TodoResponse;
+import gdg.travodobackend.app.travel.dto.todo.TodoUpdateRequest;
 import gdg.travodobackend.app.travel.service.TodoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

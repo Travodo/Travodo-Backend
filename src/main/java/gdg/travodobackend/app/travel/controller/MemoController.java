@@ -1,8 +1,8 @@
 package gdg.travodobackend.app.travel.controller;
 
-import gdg.travodobackend.app.travel.dto.MemoListResponse;
-import gdg.travodobackend.app.travel.dto.MemoRequest;
-import gdg.travodobackend.app.travel.dto.MemoResponse;
+import gdg.travodobackend.app.travel.dto.memo.MemoListResponse;
+import gdg.travodobackend.app.travel.dto.memo.MemoRequest;
+import gdg.travodobackend.app.travel.dto.memo.MemoResponse;
 import gdg.travodobackend.app.travel.service.MemoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

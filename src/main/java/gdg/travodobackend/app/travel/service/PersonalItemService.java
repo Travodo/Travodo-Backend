@@ -1,8 +1,8 @@
 package gdg.travodobackend.app.travel.service;
 
-import gdg.travodobackend.app.travel.dto.PersonalItemCreateRequest;
-import gdg.travodobackend.app.travel.dto.PersonalItemResponse;
-import gdg.travodobackend.app.travel.dto.PersonalItemUpdateRequest;
+import gdg.travodobackend.app.travel.dto.item.personal.PersonalItemCreateRequest;
+import gdg.travodobackend.app.travel.dto.item.personal.PersonalItemResponse;
+import gdg.travodobackend.app.travel.dto.item.personal.PersonalItemUpdateRequest;
 import gdg.travodobackend.app.travel.entity.PersonalItem;
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.repository.PersonalItemRepository;
