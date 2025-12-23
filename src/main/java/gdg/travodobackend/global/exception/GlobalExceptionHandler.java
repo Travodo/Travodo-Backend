@@ -116,14 +116,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
-    @ExceptionHandler(ForbiddenException.class)
-    public ResponseEntity<Map<String, Object>> handleForbiddenException(ForbiddenException e) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", e.getMessage());
-        response.put("status", HttpStatus.FORBIDDEN.value());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleException(Exception e) {
         log.error("예상치 못한 오류 발생", e);

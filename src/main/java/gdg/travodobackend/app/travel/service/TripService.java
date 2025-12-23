@@ -8,7 +8,6 @@ import gdg.travodobackend.app.travel.repository.TripMemberRepository;
 import gdg.travodobackend.app.travel.repository.TripRepository;
 import gdg.travodobackend.app.user.entity.User;
 import gdg.travodobackend.app.user.repository.UserRepository;
-import gdg.travodobackend.global.exception.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,10 +81,10 @@ public class TripService {
 
         TripMember member = tripMemberRepository
                 .findByTripIdAndUserId(tripId, userId)
-                .orElseThrow(() -> new ForbiddenException("여행 멤버만 초대 코드를 재발급할 수 있습니다."));
+                .orElseThrow(() -> new RuntimeException("여행 멤버만 초대 코드를 재발급할 수 있습니다."));
 
         if (!member.isLeader()) {
-            throw new ForbiddenException("여행 방장만 초대 코드를 재발급할 수 있습니다.");
+            throw new RuntimeException("여행 방장만 초대 코드를 재발급할 수 있습니다.");
         }
 
         Trip trip = tripRepository.findById(tripId)
