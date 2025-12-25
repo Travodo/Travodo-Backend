@@ -160,26 +160,13 @@ public class TripController {
 
     @Operation(
             summary = "현재 진행중인 여행 조회",
-            description = "로그인한 사용자의 현재 진행중인 여행을 조회합니다."
+            description = "로그인한 사용자의 현재 진행중인 여행을 조회합니다. 진행 중인 여행이 없으면 null을 반환합니다."
     )
     @GetMapping("/current")
-    public ResponseEntity<?> getCurrentTrip(
+    public ResponseEntity<CurrentTripResponse> getCurrentTrip(
             @AuthenticationPrincipal Long userId
     ) {
-        try {
-            return ResponseEntity.ok(
-                    Map.of("trip", tripService.getCurrentTrip(userId))
-            );
-        } catch (RuntimeException e) {
-            // 진행 중인 여행이 없는 정상 케이스
-            if ("아직 진행 중인 여행이 없습니다.".equals(e.getMessage())) {
-                return ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("message", e.getMessage()));
-            }
-            // 그 외는 진짜 서버 에러
-            throw e;
-        }
+        return ResponseEntity.ok(tripService.getCurrentTripOrNull(userId));
     }
 
     @Operation(

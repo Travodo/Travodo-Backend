@@ -296,6 +296,24 @@ public class TripService {
                 );
     }
 
+    @Transactional(readOnly = true)
+    public CurrentTripResponse getCurrentTripOrNull(Long userId) {
+
+        return tripMemberRepository
+                .findByUserIdAndTripStatus(userId, TripStatus.ONGOING)
+                .map(tripMember -> {
+                    Trip trip = tripMember.getTrip();
+                    return new CurrentTripResponse(
+                            trip.getId(),
+                            trip.getName(),
+                            trip.getStatus(),
+                            trip.getStartDate(),
+                            trip.getEndDate()
+                    );
+                })
+                .orElse(null);
+    }
+
     /**
      * 여행 삭제 (trip 자체 삭제)
      * - 현재 구현상 Trip과 연관된 엔티티들이 cascade remove 설정이 없으므로
