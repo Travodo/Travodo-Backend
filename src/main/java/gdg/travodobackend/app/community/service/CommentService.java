@@ -144,6 +144,7 @@ public class CommentService {
                 .author(gdg.travodobackend.app.community.dto.AuthorInfo.builder()
                         .id(comment.getAuthor().getId())
                         .nickname(comment.getAuthor().getNickname())
+                        .profileImageUrl(comment.getAuthor().getProfileImageUrl())
                         .build())
                 .content(comment.getContent())
                 .parentId(comment.getParent() != null ? comment.getParent().getId() : null)

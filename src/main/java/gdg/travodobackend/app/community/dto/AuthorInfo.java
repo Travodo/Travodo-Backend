@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 public class AuthorInfo {
     private Long id;
     private String nickname;
+    private String profileImageUrl;
 }
 
