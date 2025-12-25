@@ -1,14 +1,22 @@
 package gdg.travodobackend.app.travel.service;
 
+import gdg.travodobackend.app.travel.dto.TripInviteCodeResponse;
 import gdg.travodobackend.app.travel.dto.member.TripMemberResponse;
 import gdg.travodobackend.app.travel.dto.trip.*;
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.entity.TripMember;
 import gdg.travodobackend.app.travel.entity.TripStatus;
+import gdg.travodobackend.app.travel.repository.ActivityRepository;
+import gdg.travodobackend.app.travel.repository.ExpenseRepository;
+import gdg.travodobackend.app.travel.repository.MemoRepository;
+import gdg.travodobackend.app.travel.repository.PersonalItemRepository;
+import gdg.travodobackend.app.travel.repository.SharedItemRepository;
 import gdg.travodobackend.app.travel.repository.TripMemberRepository;
+import gdg.travodobackend.app.travel.repository.TripMemberLocationRepository;
 import gdg.travodobackend.app.travel.repository.TripRepository;
 import gdg.travodobackend.app.user.entity.User;
 import gdg.travodobackend.app.user.repository.UserRepository;
+import gdg.travodobackend.global.exception.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +33,12 @@ public class TripService {
 
     private final TripRepository tripRepository;
     private final TripMemberRepository tripMemberRepository;
+    private final TripMemberLocationRepository tripMemberLocationRepository;
+    private final SharedItemRepository sharedItemRepository;
+    private final PersonalItemRepository personalItemRepository;
+    private final ActivityRepository activityRepository;
+    private final ExpenseRepository expenseRepository;
+    private final MemoRepository memoRepository;
     private final UserRepository userRepository;
     private final TripMapService tripMapService;
 
@@ -84,10 +98,10 @@ public class TripService {
 
         TripMember member = tripMemberRepository
                 .findByTripIdAndUserId(tripId, userId)
-                .orElseThrow(() -> new RuntimeException("여행 멤버만 초대 코드를 재발급할 수 있습니다."));
+                .orElseThrow(() -> new ForbiddenException("여행 멤버만 초대 코드를 재발급할 수 있습니다."));
 
         if (!member.isLeader()) {
-            throw new RuntimeException("여행 방장만 초대 코드를 재발급할 수 있습니다.");
+            throw new ForbiddenException("여행 방장만 초대 코드를 재발급할 수 있습니다.");
         }
 
         Trip trip = tripRepository.findById(tripId)
@@ -99,6 +113,27 @@ public class TripService {
         trip.updateInviteCode(newCode, expiresAt);
 
         return newCode;
+    }
+
+    // 초대코드 조회 (재발급 없이 현재 코드 반환)
+    @Transactional(readOnly = true)
+    public TripInviteCodeResponse getInviteCode(Long userId, Long tripId) {
+        TripMember member = tripMemberRepository
+                .findByTripIdAndUserId(tripId, userId)
+                .orElseThrow(() -> new ForbiddenException("여행 멤버만 초대 코드를 조회할 수 있습니다."));
+
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new RuntimeException("Trip not found"));
+
+        boolean expired = trip.isInviteCodeExpired();
+        boolean canRegenerate = member.isLeader();
+
+        return new TripInviteCodeResponse(
+                trip.getInviteCode(),
+                trip.getInviteCodeExpiresAt(),
+                expired,
+                canRegenerate
+        );
     }
 
     // 여행 참가
@@ -257,6 +292,38 @@ public class TripService {
                 .orElseThrow(() ->
                         new RuntimeException("아직 진행 중인 여행이 없습니다.")
                 );
+    }
+
+    /**
+     * 여행 삭제 (trip 자체 삭제)
+     * - 현재 구현상 Trip과 연관된 엔티티들이 cascade remove 설정이 없으므로
+     *   FK 충돌을 피하기 위해 하위 데이터를 먼저 정리한 뒤 Trip을 삭제합니다.
+     * - 기본 정책: 여행 방장만 삭제 가능
+     */
+    public void deleteTrip(Long userId, Long tripId) {
+        TripMember member = tripMemberRepository
+                .findByTripIdAndUserId(tripId, userId)
+                .orElseThrow(() -> new ForbiddenException("여행 멤버만 여행을 삭제할 수 있습니다."));
+
+        if (!member.isLeader()) {
+            throw new ForbiddenException("여행 방장만 여행을 삭제할 수 있습니다.");
+        }
+
+        // 존재 확인 (삭제 대상이 없으면 404 성격이지만 현재 예외 정책에 맞춰 RuntimeException 유지)
+        tripRepository.findById(tripId)
+                .orElseThrow(() -> new RuntimeException("Trip not found"));
+
+        // 하위 데이터 정리 (FK 순서 고려)
+        tripMemberLocationRepository.deleteByTripId(tripId);
+        sharedItemRepository.deleteByTripId(tripId);
+        personalItemRepository.deleteByTripId(tripId);
+        activityRepository.deleteByTripId(tripId);
+        expenseRepository.deleteParticipantsByTripId(tripId);
+        expenseRepository.deleteByTripId(tripId);
+        memoRepository.deleteByTripId(tripId);
+        tripMemberRepository.deleteByTripId(tripId);
+
+        tripRepository.deleteById(tripId);
     }
 
 }

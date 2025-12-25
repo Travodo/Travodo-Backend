@@ -11,4 +11,6 @@ public interface SharedItemRepository extends JpaRepository<SharedItem, Long> {
     List<SharedItem> findByTripId(Long tripId);
 
     Optional<SharedItem> findByIdAndTripId(Long id, Long tripId);
+
+    void deleteByTripId(Long tripId);
 }

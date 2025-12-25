@@ -14,6 +14,7 @@ public interface TripMemberLocationRepository extends JpaRepository<TripMemberLo
     Optional<TripMemberLocation> findByTripAndUser(Trip trip, User user);
     List<TripMemberLocation> findAllByTrip(Trip trip);
 
+    void deleteByTripId(Long tripId);
     @Query("select l.color from TripMemberLocation l where l.trip = :trip")
     List<String> findUsedColorsByTrip(@Param("trip") Trip trip);
 }

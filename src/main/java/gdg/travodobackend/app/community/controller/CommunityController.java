@@ -183,9 +183,11 @@ public class CommunityController {
             @Parameter(description = "페이지 번호 (0부터 시작)")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기")
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication) {
         
-        CommentListResponse response = commentService.getComments(postId, page, size);
+        Long userId = authentication != null ? (Long) authentication.getPrincipal() : null;
+        CommentListResponse response = commentService.getComments(postId, page, size, userId);
         return ResponseEntity.ok(response);
     }
 
@@ -227,6 +229,32 @@ public class CommunityController {
         
         Long userId = (Long) authentication.getPrincipal();
         commentService.deleteComment(commentId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // 댓글 좋아요
+    @PostMapping("/comments/{commentId}/likes")
+    @Operation(summary = "댓글 좋아요", description = "댓글에 좋아요를 추가합니다")
+    public ResponseEntity<Void> likeComment(
+            @Parameter(description = "댓글 ID")
+            @PathVariable Long commentId,
+            Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        commentService.likeComment(commentId, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    // 댓글 좋아요 취소
+    @DeleteMapping("/comments/{commentId}/likes")
+    @Operation(summary = "댓글 좋아요 취소", description = "댓글 좋아요를 취소합니다")
+    public ResponseEntity<Void> unlikeComment(
+            @Parameter(description = "댓글 ID")
+            @PathVariable Long commentId,
+            Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        commentService.unlikeComment(commentId, userId);
         return ResponseEntity.noContent().build();
     }
 

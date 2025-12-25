@@ -13,4 +13,7 @@ public interface PersonalItemRepository extends JpaRepository<PersonalItem, Long
 
     // 특정 여행 + 특정 유저의 개인 준비물 중 하나
     Optional<PersonalItem> findByIdAndTripIdAndUserId(Long id, Long tripId, Long userId);
+
+    // 여행 삭제 시 전체 정리용
+    void deleteByTripId(Long tripId);
 }

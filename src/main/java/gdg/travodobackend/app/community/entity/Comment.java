@@ -42,6 +42,10 @@ public class Comment {
     @Builder.Default
     private Boolean deleted = false;
 
+    @Column(name = "like_count", nullable = false)
+    @Builder.Default
+    private Integer likeCount = 0;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -58,6 +62,18 @@ public class Comment {
     // 댓글 삭제 (soft delete)
     public void delete() {
         this.deleted = true;
+    }
+
+    // 좋아요 수 증가
+    public void incrementLikeCount() {
+        this.likeCount++;
+    }
+
+    // 좋아요 수 감소
+    public void decrementLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
     }
 }
 

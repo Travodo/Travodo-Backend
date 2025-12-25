@@ -157,6 +157,7 @@ public class PostBookmarkService {
                 .author(gdg.travodobackend.app.community.dto.AuthorInfo.builder()
                         .id(post.getAuthor().getId())
                         .nickname(post.getAuthor().getNickname())
+                        .profileImageUrl(post.getAuthor().getProfileImageUrl())
                         .build())
                 .title(post.getTitle())
                 .summary(summary)
