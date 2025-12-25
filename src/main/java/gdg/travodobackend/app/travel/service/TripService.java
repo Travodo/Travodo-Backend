@@ -94,6 +94,7 @@ public class TripService {
     }
 
     // 초대코드 재발급
+    @Transactional
     public String regenerateInviteCode(Long userId, Long tripId) {
 
         TripMember member = tripMemberRepository
