@@ -162,13 +162,19 @@ public class TripController {
             description = "로그인한 사용자의 현재 진행중인 여행을 조회합니다."
     )
     @GetMapping("/current")
-    public Map<String, CurrentTripResponse> getCurrentTrip(
+    public ResponseEntity<Map<String, CurrentTripResponse>> getCurrentTrip(
             @AuthenticationPrincipal Long userId
     ) {
-        return Map.of(
-                "trip",
-                tripService.getCurrentTrip(userId)
-        );
+        try {
+            return ResponseEntity.ok(
+                    Map.of("trip", tripService.getCurrentTrip(userId))
+            );
+        } catch (RuntimeException e) {
+            // 진행 중인 여행이 없는 경우
+            return ResponseEntity.ok(
+                    Map.of("trip", null)
+            );
+        }
     }
 
     @Operation(
