@@ -1,8 +1,9 @@
 package gdg.travodobackend.app.travel.service;
 
-import gdg.travodobackend.app.travel.dto.SharedItemCreateRequest;
-import gdg.travodobackend.app.travel.dto.SharedItemResponse;
-import gdg.travodobackend.app.travel.dto.SharedItemUpdateRequest;
+import gdg.travodobackend.app.notification.service.NotificationService;
+import gdg.travodobackend.app.travel.dto.item.shared.SharedItemCreateRequest;
+import gdg.travodobackend.app.travel.dto.item.shared.SharedItemResponse;
+import gdg.travodobackend.app.travel.dto.item.shared.SharedItemUpdateRequest;
 import gdg.travodobackend.app.travel.entity.SharedItem;
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.repository.SharedItemRepository;
@@ -25,6 +26,7 @@ public class SharedItemService {
     private final TripRepository tripRepository;
     private final TripMemberRepository tripMemberRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     /**
      * 여행 멤버 검증
@@ -58,6 +60,9 @@ public class SharedItemService {
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new RuntimeException("여행을 찾을 수 없습니다."));
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
         SharedItem item = SharedItem.builder()
                 .trip(trip)
                 .name(request.name())
@@ -66,6 +71,12 @@ public class SharedItemService {
                 .build();
 
         sharedItemRepository.save(item);
+
+        notificationService.createSharedItemAddedNotification(
+                trip,
+                user,
+                item.getName()
+        );
 
         return SharedItemResponse.from(item);
     }

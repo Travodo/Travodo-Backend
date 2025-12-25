@@ -3,7 +3,6 @@ package gdg.travodobackend.app.travel.entity;
 import gdg.travodobackend.app.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -33,6 +32,9 @@ public class TripMemberLocation {
 
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    private String color;
+
     public void update(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
@@ -49,5 +51,16 @@ public class TripMemberLocation {
         }
         update(latitude, longitude);
         return true;
+    }
+
+    // 최초 1회만 색상 지정
+    public void assignColorIfAbsent() {
+        if (this.color == null) {
+            this.color = MapColor.random();
+        }
+    }
+
+    public void assignColor(String color) {
+        this.color = color;
     }
 }

@@ -1,9 +1,10 @@
 package gdg.travodobackend.app.travel.service;
 
-import gdg.travodobackend.app.travel.dto.LocationUpdateRequest;
-import gdg.travodobackend.app.travel.dto.MapPointDto;
-import gdg.travodobackend.app.travel.dto.MapPointsResponse;
-import gdg.travodobackend.app.travel.dto.MemberLocationResponse;
+import gdg.travodobackend.app.travel.dto.map.LocationUpdateRequest;
+import gdg.travodobackend.app.travel.dto.map.MapPointDto;
+import gdg.travodobackend.app.travel.dto.map.MapPointsResponse;
+import gdg.travodobackend.app.travel.dto.map.MemberLocationResponse;
+import gdg.travodobackend.app.travel.entity.MapColor;
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.entity.TripMemberLocation;
 import gdg.travodobackend.app.travel.repository.ActivityRepository;
@@ -20,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +61,8 @@ public class TripMapService {
                         .build()
                 );
 
+        location.assignColorIfAbsent();
+
         boolean changed = location.updateIfChanged(
                 req.latitude(),
                 req.longitude()
@@ -86,7 +90,8 @@ public class TripMapService {
                         loc.getUser().getNickname(),
                         loc.getLatitude(),
                         loc.getLongitude(),
-                        loc.getUpdatedAt()
+                        loc.getUpdatedAt(),
+                        loc.getColor()
                 ))
                 .toList();
     }
@@ -115,7 +120,8 @@ public class TripMapService {
                         loc.getUser().getId(),
                         loc.getUser().getNickname(),
                         loc.getLatitude(),
-                        loc.getLongitude()
+                        loc.getLongitude(),
+                        loc.getColor()
                 ))
         );
 
@@ -140,4 +146,40 @@ public class TripMapService {
                 points
         );
     }
+
+    private String pickAvailableColor(Trip trip) {
+
+        List<String> usedColors = locationRepository.findUsedColorsByTrip(trip);
+
+        List<String> availableColors = MapColor.COLORS.stream()
+                .filter(color -> !usedColors.contains(color))
+                .toList();
+
+        if (availableColors.isEmpty()) {
+            return MapColor.random(); // fallback
+        }
+
+        return availableColors.get(
+                new Random().nextInt(availableColors.size())
+        );
+    }
+
+    @Transactional
+    public void ensureMemberLocationExists(Trip trip, User user) {
+
+        locationRepository.findByTripAndUser(trip, user)
+                .orElseGet(() -> {
+
+                    String color = pickAvailableColor(trip);
+
+                    TripMemberLocation location = TripMemberLocation.builder()
+                            .trip(trip)
+                            .user(user)
+                            .color(color)
+                            .build();
+
+                    return locationRepository.save(location);
+                });
+    }
+
 }

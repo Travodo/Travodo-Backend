@@ -1,7 +1,7 @@
 package gdg.travodobackend.app.travel.controller;
 
-import gdg.travodobackend.app.travel.dto.*;
-import gdg.travodobackend.app.travel.dto.TripInviteCodeResponse;
+import gdg.travodobackend.app.travel.dto.member.TripMemberResponse;
+import gdg.travodobackend.app.travel.dto.trip.*;
 import gdg.travodobackend.app.travel.service.TripService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -7,7 +7,7 @@ import gdg.travodobackend.app.community.entity.PostBookmark;
 import gdg.travodobackend.app.community.repository.PostBookmarkRepository;
 import gdg.travodobackend.app.community.repository.PostLikeRepository;
 import gdg.travodobackend.app.community.repository.PostRepository;
-import gdg.travodobackend.app.travel.dto.TripResponse;
+import gdg.travodobackend.app.travel.dto.trip.TripResponse;
 import gdg.travodobackend.app.travel.repository.TripRepository;
 import gdg.travodobackend.app.user.entity.User;
 import gdg.travodobackend.app.user.repository.UserRepository;

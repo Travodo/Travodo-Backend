@@ -1,6 +1,8 @@
 package gdg.travodobackend.app.travel.service;
 
-import gdg.travodobackend.app.travel.dto.*;
+import gdg.travodobackend.app.travel.dto.memo.MemoListResponse;
+import gdg.travodobackend.app.travel.dto.memo.MemoRequest;
+import gdg.travodobackend.app.travel.dto.memo.MemoResponse;
 import gdg.travodobackend.app.travel.entity.Memo;
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.repository.MemoRepository;

@@ -1,6 +1,6 @@
 package gdg.travodobackend.app.travel.service;
 
-import gdg.travodobackend.app.travel.dto.MemoUpdateEvent;
+import gdg.travodobackend.app.travel.dto.memo.MemoUpdateEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

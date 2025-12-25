@@ -1,7 +1,7 @@
 package gdg.travodobackend.app.travel.service;
 
-import gdg.travodobackend.app.travel.dto.*;
-import gdg.travodobackend.app.travel.dto.TripInviteCodeResponse;
+import gdg.travodobackend.app.travel.dto.member.TripMemberResponse;
+import gdg.travodobackend.app.travel.dto.trip.*;
 import gdg.travodobackend.app.travel.entity.Trip;
 import gdg.travodobackend.app.travel.entity.TripMember;
 import gdg.travodobackend.app.travel.entity.TripStatus;
@@ -39,6 +39,7 @@ public class TripService {
     private final ExpenseRepository expenseRepository;
     private final MemoRepository memoRepository;
     private final UserRepository userRepository;
+    private final TripMapService tripMapService;
 
     private static final List<String> TRIP_COLORS = List.of(
             "#EE8787", "#FFD2C2", "#EAAF4F", "#FFE386",
@@ -83,6 +84,7 @@ public class TripService {
                 .isLeader(true)
                 .build();
         tripMemberRepository.save(leader);
+        tripMapService.ensureMemberLocationExists(trip, user);
 
         return new TripCreateResponse(
                 TripResponse.from(trip),
@@ -162,6 +164,7 @@ public class TripService {
                 .build();
 
         tripMemberRepository.save(member);
+        tripMapService.ensureMemberLocationExists(trip, user);
 
         return TripResponse.from(trip);
     }
