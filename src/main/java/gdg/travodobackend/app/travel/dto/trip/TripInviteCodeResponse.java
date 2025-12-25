@@ -1,4 +1,4 @@
-package gdg.travodobackend.app.travel.dto;
+package gdg.travodobackend.app.travel.dto.trip;
 
 import java.time.LocalDateTime;
 
