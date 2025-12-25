@@ -169,4 +169,23 @@ public class TripController {
                 tripService.getCurrentTrip(userId)
         );
     }
+
+    @Operation(
+            summary = "여행 삭제",
+            description = "여행 방장이 여행(tripId) 자체를 삭제합니다. (여행에 속한 데이터도 함께 정리됩니다.)"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "삭제 성공"),
+            @ApiResponse(responseCode = "403", description = "여행 방장이 아님 / 여행 멤버가 아님"),
+            @ApiResponse(responseCode = "404", description = "여행을 찾을 수 없음")
+    })
+    @DeleteMapping("/{tripId}")
+    public ResponseEntity<Void> deleteTrip(
+            @AuthenticationPrincipal Long userId,
+            @Parameter(description = "여행 ID", example = "1")
+            @PathVariable Long tripId
+    ) {
+        tripService.deleteTrip(userId, tripId);
+        return ResponseEntity.noContent().build();
+    }
 }

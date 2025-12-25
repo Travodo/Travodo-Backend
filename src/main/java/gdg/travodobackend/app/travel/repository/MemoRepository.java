@@ -16,5 +16,7 @@ public interface MemoRepository extends JpaRepository<Memo, Long> {
     Optional<Memo> findByIdAndDeletedFalse(Long id);
     
     List<Memo> findByTripIdAndDeletedFalse(Long tripId);
+
+    void deleteByTripId(Long tripId);
 }
 

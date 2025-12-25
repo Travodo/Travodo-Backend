@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface TripMemberLocationRepository extends JpaRepository<TripMemberLocation, Long> {
     Optional<TripMemberLocation> findByTripAndUser(Trip trip, User user);
     List<TripMemberLocation> findAllByTrip(Trip trip);
+
+    void deleteByTripId(Long tripId);
 }
