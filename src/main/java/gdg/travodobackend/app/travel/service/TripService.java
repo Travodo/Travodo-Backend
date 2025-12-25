@@ -187,6 +187,7 @@ public class TripService {
     }
 
     // 여행 상태 변경
+    @Transactional
     public TripResponse updateTripStatus(Long userId, Long tripId, TripStatusUpdateRequest request) {
 
         Trip trip = tripRepository.findById(tripId)
