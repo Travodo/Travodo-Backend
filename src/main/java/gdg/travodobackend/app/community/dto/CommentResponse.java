@@ -20,6 +20,8 @@ public class CommentResponse {
     private String content;
     private Long parentId;
     private List<CommentResponse> replies;
+    private Integer likeCount;
+    private Boolean isLiked;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

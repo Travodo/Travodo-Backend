@@ -3,6 +3,7 @@ package gdg.travodobackend.app.travel.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
@@ -33,6 +34,7 @@ public class Trip {
     private Integer maxMembers;
 
     @OneToMany(mappedBy = "trip")
+    @Default
     private List<TripMember> members = new ArrayList<>();
     private LocalDateTime inviteCodeExpiresAt;
 
