@@ -34,8 +34,10 @@ spring:
     servlet:
         multipart:
             enabled: true
-            max-file-size: 10MB # 개별 파일 최대 크기
-            max-request-size: 100MB # 전체 요청 최대 크기 (여러 파일 포함)
+            # 커뮤니티/프로필 이미지 업로드를 고려해 기본 제한을 넉넉히 설정
+            # (앱에서 촬영/선택한 원본이 10MB를 넘는 경우가 종종 있음)
+            max-file-size: 100MB # 개별 파일 최대 크기
+            max-request-size: 500MB # 전체 요청 최대 크기 (여러 파일 포함)
             file-size-threshold: 2KB # 메모리에 저장할 임계값
 
     mail:

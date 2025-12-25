@@ -1,6 +1,5 @@
 package gdg.travodobackend.app.upload.service;
 
-import gdg.travodobackend.config.S3Config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,6 +53,12 @@ public class S3Service {
         // 고유한 파일명 생성
         String originalFilename = file.getOriginalFilename();
         String extension = getFileExtension(originalFilename);
+        if (extension == null || extension.isBlank()) {
+            extension = extensionFromContentType(file.getContentType());
+        }
+        if (extension == null || extension.isBlank()) {
+            throw new IllegalArgumentException("파일 확장자를 확인할 수 없습니다. (Content-Type 또는 파일명을 확인해주세요)");
+        }
         String fileName = folder + "/" + UUID.randomUUID() + "." + extension;
 
         try {
@@ -102,29 +107,40 @@ public class S3Service {
      * 이미지 파일 유효성 검증
      */
     private void validateImageFile(MultipartFile file) {
-        // 파일 크기 검증 (10MB 제한)
-        long maxSize = 10 * 1024 * 1024; // 10MB
+        // 파일 크기 검증 (기본 30MB 제한)
+        long maxSize = 30L * 1024 * 1024; // 30MB
         if (file.getSize() > maxSize) {
-            throw new IllegalArgumentException("이미지 파일 크기는 10MB를 초과할 수 없습니다.");
+            throw new IllegalArgumentException("이미지 파일 크기는 30MB를 초과할 수 없습니다.");
         }
 
-        // 파일 확장자 검증
+        // 파일 확장자/Content-Type 검증
         String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || originalFilename.isEmpty()) {
-            throw new IllegalArgumentException("파일명이 없습니다.");
-        }
-
-        String extension = getFileExtension(originalFilename).toLowerCase();
-        java.util.List<String> allowedExtensions = java.util.List.of("jpg", "jpeg", "png", "gif", "webp");
-
-        if (!allowedExtensions.contains(extension)) {
-            throw new IllegalArgumentException("지원하지 않는 이미지 형식입니다. (jpg, jpeg, png, gif, webp만 가능)");
+        String extension = getFileExtension(originalFilename);
+        if (extension != null) {
+            extension = extension.toLowerCase();
         }
 
         // Content-Type 검증
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("이미지 파일만 업로드 가능합니다.");
+        }
+
+        // 허용 확장자: iOS 원본(heic/heif)도 지원
+        java.util.List<String> allowedExtensions = java.util.List.of(
+                "jpg", "jpeg", "png", "gif", "webp", "heic", "heif"
+        );
+
+        // 확장자가 있으면 확장자로 검증, 없으면 Content-Type으로 검증
+        if (extension != null && !extension.isBlank()) {
+            if (!allowedExtensions.contains(extension)) {
+                throw new IllegalArgumentException("지원하지 않는 이미지 형식입니다. (jpg, jpeg, png, gif, webp, heic, heif만 가능)");
+            }
+        } else {
+            String inferred = extensionFromContentType(contentType);
+            if (inferred == null || !allowedExtensions.contains(inferred)) {
+                throw new IllegalArgumentException("지원하지 않는 이미지 형식입니다. (Content-Type: " + contentType + ")");
+            }
         }
     }
 
@@ -140,6 +156,30 @@ public class S3Service {
             return "";
         }
         return filename.substring(lastDotIndex + 1);
+    }
+
+    /**
+     * Content-Type 기반으로 파일 확장자 추론
+     * - "image/jpeg" -> "jpg"
+     * - "image/png" -> "png"
+     * - "image/heic" -> "heic"
+     * - "image/heif" -> "heif"
+     */
+    private String extensionFromContentType(String contentType) {
+        if (contentType == null || contentType.isBlank()) return "";
+        return switch (contentType.toLowerCase()) {
+            case "image/jpeg" -> "jpg";
+            case "image/jpg" -> "jpg";
+            case "image/png" -> "png";
+            case "image/gif" -> "gif";
+            case "image/webp" -> "webp";
+            case "image/heic" -> "heic";
+            case "image/heif" -> "heif";
+            // 일부 단말/라이브러리에서 heic가 "image/heic-sequence" 등으로 올 수도 있어 보수적으로 처리
+            default -> contentType.toLowerCase().startsWith("image/heic") ? "heic"
+                    : contentType.toLowerCase().startsWith("image/heif") ? "heif"
+                    : "";
+        };
     }
 
     /**
