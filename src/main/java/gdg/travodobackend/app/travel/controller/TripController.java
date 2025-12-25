@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -162,7 +163,7 @@ public class TripController {
             description = "로그인한 사용자의 현재 진행중인 여행을 조회합니다."
     )
     @GetMapping("/current")
-    public ResponseEntity<Map<String, CurrentTripResponse>> getCurrentTrip(
+    public ResponseEntity<?> getCurrentTrip(
             @AuthenticationPrincipal Long userId
     ) {
         try {
@@ -170,10 +171,14 @@ public class TripController {
                     Map.of("trip", tripService.getCurrentTrip(userId))
             );
         } catch (RuntimeException e) {
-            // 진행 중인 여행이 없는 경우
-            return ResponseEntity.ok(
-                    Map.of("trip", null)
-            );
+            // 진행 중인 여행이 없는 정상 케이스
+            if ("아직 진행 중인 여행이 없습니다.".equals(e.getMessage())) {
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", e.getMessage()));
+            }
+            // 그 외는 진짜 서버 에러
+            throw e;
         }
     }
 
