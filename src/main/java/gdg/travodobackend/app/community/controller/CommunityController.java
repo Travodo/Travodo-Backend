@@ -33,7 +33,7 @@ public class CommunityController {
     @GetMapping("/posts")
     @Operation(summary = "게시글 목록 조회", description = "여행 유형 필터, 정렬 기준으로 게시글 목록을 조회합니다")
     public ResponseEntity<PostListResponse> getPosts(
-            @Parameter(description = "여행 유형 태그 (단일) - SOLO, FRIEND, COUPLE, FAMILY, RELAXATION")
+            @Parameter(description = "여행 유형 태그 (단일) - RELAXATION_HEALING, ACTIVITY, HISTORY_CULTURE, SHOPPING, NATURE_CAMPING, HOCANCES, GOURMET")
             @RequestParam(required = false) TravelTag tag,
             @Parameter(description = "여행 유형 태그 (다중) - 여러 태그를 OR 조건으로 필터링")
             @RequestParam(required = false) List<TravelTag> tags,
@@ -71,7 +71,7 @@ public class CommunityController {
             @RequestParam("title") String title,
             @Parameter(description = "내용")
             @RequestParam("content") String content,
-            @Parameter(description = "여행 유형 태그 (SOLO, FRIEND, COUPLE, FAMILY, RELAXATION)")
+            @Parameter(description = "여행 유형 태그 (RELAXATION_HEALING, ACTIVITY, HISTORY_CULTURE, SHOPPING, NATURE_CAMPING, HOCANCES, GOURMET)")
             @RequestParam("tags") List<TravelTag> tags,
             @Parameter(description = "여행 ID (선택사항)")
             @RequestParam(value = "tripId", required = false) Long tripId,
