@@ -223,22 +223,17 @@ public class TripService {
 
     // 다가오는 여행 조회
     @Transactional(readOnly = true)
-    public CurrentTripResponse getUpcomingTripOrNull(Long userId) {
+    public List<TripResponse> getUpcomingTrips(Long userId) {
+
+        LocalDate today = LocalDate.now();
 
         return tripRepository
-                .findUpcomingTripsByUserId(userId, TripStatus.UPCOMING)
+                .findUpcomingTripsByUserId(userId, TripStatus.UPCOMING, today)
                 .stream()
-                // 시작일 기준 가장 가까운 여행 1개
+                // 시작일 기준 정렬
                 .sorted((a, b) -> a.getStartDate().compareTo(b.getStartDate()))
-                .findFirst()
-                .map(trip -> new CurrentTripResponse(
-                        trip.getId(),
-                        trip.getName(),
-                        trip.getStatus(),
-                        trip.getStartDate(),
-                        trip.getEndDate()
-                ))
-                .orElse(null);
+                .map(TripResponse::from)
+                .toList();
     }
 
     // 중복 없는 초대 코드 생성

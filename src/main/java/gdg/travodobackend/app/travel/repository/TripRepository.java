@@ -25,11 +25,13 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
             join t.members m
             where m.user.id = :userId
               and t.status = :status
+              and t.startDate >= :today
             order by t.startDate asc
             """)
     List<Trip> findUpcomingTripsByUserId(
             @Param("userId") Long userId,
-            @Param("status") TripStatus status
+            @Param("status") TripStatus status,
+            @Param("today") LocalDate today
     );
 
     // 특정 기간과 겹치는 여행(달력용) 조회

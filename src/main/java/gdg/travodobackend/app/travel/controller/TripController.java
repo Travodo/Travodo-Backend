@@ -124,19 +124,16 @@ public class TripController {
             summary = "다가오는 여행 조회",
             description = """
                 사용자가 참여 중인 여행 중
-                상태가 UPCOMING인 여행 중
-                시작일이 가장 빠른 여행 1개를 조회합니다.
+                상태가 UPCOMING인 여행 목록을 조회합니다.
+                시작일 기준 오름차순으로 정렬됩니다.
                 
-                - 다가오는 여행이 없으면 null을 반환합니다.
+                - 다가오는 여행이 없으면 빈 배열을 반환합니다.
                 """
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
-                    description = "다가오는 여행 조회 성공",
-                    content = @Content(
-                            schema = @Schema(implementation = CurrentTripResponse.class)
-                    )
+                    description = "다가오는 여행 조회 성공"
             ),
             @ApiResponse(
                     responseCode = "401",
@@ -144,11 +141,11 @@ public class TripController {
             )
     })
     @GetMapping("/upcoming")
-    public ResponseEntity<CurrentTripResponse> getUpcomingTrip(
+    public ResponseEntity<List<TripResponse>> getUpcomingTrips(
             @AuthenticationPrincipal Long userId
     ) {
         return ResponseEntity.ok(
-                tripService.getUpcomingTripOrNull(userId)
+                tripService.getUpcomingTrips(userId)
         );
     }
 
