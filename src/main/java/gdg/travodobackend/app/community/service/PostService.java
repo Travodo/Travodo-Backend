@@ -43,17 +43,33 @@ public class PostService {
     private static final int SUMMARY_LENGTH = 100;
 
     // 게시글 목록 조회
-    public PostListResponse getPosts(TravelTag tag, String sort, int page, int size, Long currentUserId) {
+    public PostListResponse getPosts(TravelTag tag, List<TravelTag> tags, String sort, int page, int size, Long currentUserId) {
         Pageable pageable = createPageable(sort, page, size);
         Page<Post> postPage;
 
-        if (tag != null) {
-            if ("popular".equals(sort)) {
-                postPage = postRepository.findByTagAndDeletedFalseOrderByPopularity(tag, pageable);
+        // 여러 태그가 제공된 경우 tags 사용, 단일 태그가 제공된 경우 tag 사용
+        List<TravelTag> filterTags = (tags != null && !tags.isEmpty()) ? tags : 
+                                      (tag != null ? List.of(tag) : null);
+
+        if (filterTags != null && !filterTags.isEmpty()) {
+            // 태그 필터링
+            if (filterTags.size() == 1) {
+                // 단일 태그인 경우 기존 메서드 사용
+                if ("popular".equals(sort)) {
+                    postPage = postRepository.findByTagAndDeletedFalseOrderByPopularity(filterTags.get(0), pageable);
+                } else {
+                    postPage = postRepository.findByTagAndDeletedFalseOrderByCreatedAtDesc(filterTags.get(0), pageable);
+                }
             } else {
-                postPage = postRepository.findByTagAndDeletedFalseOrderByCreatedAtDesc(tag, pageable);
+                // 여러 태그인 경우
+                if ("popular".equals(sort)) {
+                    postPage = postRepository.findByTagsInAndDeletedFalseOrderByPopularity(filterTags, pageable);
+                } else {
+                    postPage = postRepository.findByTagsInAndDeletedFalseOrderByCreatedAtDesc(filterTags, pageable);
+                }
             }
         } else {
+            // 필터링 없음
             if ("popular".equals(sort)) {
                 postPage = postRepository.findByDeletedFalseOrderByPopularity(pageable);
             } else {

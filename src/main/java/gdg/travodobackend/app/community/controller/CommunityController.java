@@ -31,10 +31,12 @@ public class CommunityController {
 
     // 게시글 목록 조회
     @GetMapping("/posts")
-    @Operation(summary = "게시글 목록 조회", description = "여행 유형 필터와 정렬 기준으로 게시글 목록을 조회합니다")
+    @Operation(summary = "게시글 목록 조회", description = "여행 유형 필터, 정렬 기준으로 게시글 목록을 조회합니다")
     public ResponseEntity<PostListResponse> getPosts(
-            @Parameter(description = "여행 유형 태그 (SOLO, FRIEND, COUPLE, FAMILY, RELAXATION)")
+            @Parameter(description = "여행 유형 태그 (단일) - RELAXATION_HEALING, ACTIVITY, HISTORY_CULTURE, SHOPPING, NATURE_CAMPING, HOCANCES, GOURMET")
             @RequestParam(required = false) TravelTag tag,
+            @Parameter(description = "여행 유형 태그 (다중) - 여러 태그를 OR 조건으로 필터링")
+            @RequestParam(required = false) List<TravelTag> tags,
             @Parameter(description = "정렬 기준 (recent: 최신순, popular: 인기순)")
             @RequestParam(defaultValue = "recent") String sort,
             @Parameter(description = "페이지 번호 (0부터 시작)")
@@ -44,7 +46,7 @@ public class CommunityController {
             Authentication authentication) {
         
         Long userId = (Long) authentication.getPrincipal();
-        PostListResponse response = postService.getPosts(tag, sort, page, size, userId);
+        PostListResponse response = postService.getPosts(tag, tags, sort, page, size, userId);
         return ResponseEntity.ok(response);
     }
 
@@ -69,7 +71,7 @@ public class CommunityController {
             @RequestParam("title") String title,
             @Parameter(description = "내용")
             @RequestParam("content") String content,
-            @Parameter(description = "여행 유형 태그 (SOLO, FRIEND, COUPLE, FAMILY, RELAXATION)")
+            @Parameter(description = "여행 유형 태그 (RELAXATION_HEALING, ACTIVITY, HISTORY_CULTURE, SHOPPING, NATURE_CAMPING, HOCANCES, GOURMET)")
             @RequestParam("tags") List<TravelTag> tags,
             @Parameter(description = "여행 ID (선택사항)")
             @RequestParam(value = "tripId", required = false) Long tripId,
