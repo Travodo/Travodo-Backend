@@ -6,6 +6,8 @@ import gdg.travodobackend.app.travel.dto.trip.*;
 import gdg.travodobackend.app.travel.service.TripService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -119,14 +121,35 @@ public class TripController {
     }
 
     @Operation(
-            summary = "다가오는 여행 목록 조회",
-            description = "현재 로그인한 사용자의 다가오는 여행(UPCOMING)을 조회합니다."
+            summary = "다가오는 여행 조회",
+            description = """
+                사용자가 참여 중인 여행 중
+                상태가 UPCOMING인 여행 중
+                시작일이 가장 빠른 여행 1개를 조회합니다.
+                
+                - 다가오는 여행이 없으면 null을 반환합니다.
+                """
     )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "다가오는 여행 조회 성공",
+                    content = @Content(
+                            schema = @Schema(implementation = CurrentTripResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 실패"
+            )
+    })
     @GetMapping("/upcoming")
-    public ResponseEntity<List<TripResponse>> getUpcomingTrips(
+    public ResponseEntity<CurrentTripResponse> getUpcomingTrip(
             @AuthenticationPrincipal Long userId
     ) {
-        return ResponseEntity.ok(tripService.getUpcomingTrips(userId));
+        return ResponseEntity.ok(
+                tripService.getUpcomingTripOrNull(userId)
+        );
     }
 
     @Operation(
