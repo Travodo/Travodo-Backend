@@ -43,31 +43,16 @@ public class PostService {
     private static final int SUMMARY_LENGTH = 100;
 
     // 게시글 목록 조회
-    public PostListResponse getPosts(TravelTag tag, List<TravelTag> tags, String keyword, String sort, int page, int size, Long currentUserId) {
+    public PostListResponse getPosts(TravelTag tag, List<TravelTag> tags, String sort, int page, int size, Long currentUserId) {
         Pageable pageable = createPageable(sort, page, size);
         Page<Post> postPage;
 
         // 여러 태그가 제공된 경우 tags 사용, 단일 태그가 제공된 경우 tag 사용
         List<TravelTag> filterTags = (tags != null && !tags.isEmpty()) ? tags : 
                                       (tag != null ? List.of(tag) : null);
-        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
 
-        if (hasKeyword && filterTags != null && !filterTags.isEmpty()) {
-            // 검색어 + 태그 필터링
-            if ("popular".equals(sort)) {
-                postPage = postRepository.findByKeywordAndTagsInAndDeletedFalseOrderByPopularity(keyword.trim(), filterTags, pageable);
-            } else {
-                postPage = postRepository.findByKeywordAndTagsInAndDeletedFalseOrderByCreatedAtDesc(keyword.trim(), filterTags, pageable);
-            }
-        } else if (hasKeyword) {
-            // 검색어만 필터링
-            if ("popular".equals(sort)) {
-                postPage = postRepository.findByKeywordAndDeletedFalseOrderByPopularity(keyword.trim(), pageable);
-            } else {
-                postPage = postRepository.findByKeywordAndDeletedFalseOrderByCreatedAtDesc(keyword.trim(), pageable);
-            }
-        } else if (filterTags != null && !filterTags.isEmpty()) {
-            // 태그만 필터링
+        if (filterTags != null && !filterTags.isEmpty()) {
+            // 태그 필터링
             if (filterTags.size() == 1) {
                 // 단일 태그인 경우 기존 메서드 사용
                 if ("popular".equals(sort)) {
