@@ -223,11 +223,22 @@ public class TripService {
 
     // 다가오는 여행 조회
     @Transactional(readOnly = true)
-    public List<TripResponse> getUpcomingTrips(Long userId) {
-        return tripRepository.findUpcomingTripsByUserId(userId, TripStatus.UPCOMING)
+    public CurrentTripResponse getUpcomingTripOrNull(Long userId) {
+
+        return tripRepository
+                .findUpcomingTripsByUserId(userId, TripStatus.UPCOMING)
                 .stream()
-                .map(TripResponse::from)
-                .toList();
+                // 시작일 기준 가장 가까운 여행 1개
+                .sorted((a, b) -> a.getStartDate().compareTo(b.getStartDate()))
+                .findFirst()
+                .map(trip -> new CurrentTripResponse(
+                        trip.getId(),
+                        trip.getName(),
+                        trip.getStatus(),
+                        trip.getStartDate(),
+                        trip.getEndDate()
+                ))
+                .orElse(null);
     }
 
     // 중복 없는 초대 코드 생성
