@@ -159,15 +159,36 @@ public class TripController {
     }
 
     @Operation(
-            summary = "현재 진행중인 여행 조회",
-            description = "로그인한 사용자의 현재 진행중인 여행을 조회합니다. 진행 중인 여행이 없으면 null을 반환합니다."
+            summary = "현재 진행 중인 여행 조회",
+            description = """
+        로그인한 사용자의 현재 진행 중인 여행을 조회합니다.
+
+        • 진행 중인 여행이 있는 경우  
+          → 여행 정보를 담은 객체를 반환합니다.
+
+        • 진행 중인 여행이 없는 경우  
+          → 에러가 아닌 정상 응답(200 OK)으로,
+            진행 중인 여행이 없음을 의미하는 빈 객체를 반환합니다.
+            (이 경우 id 값은 null입니다.)
+
+        ※ 여행 데이터가 존재하는 경우,
+          id, name, status, startDate, endDate 필드는
+          null로 내려가지 않습니다.
+        """
     )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "현재 진행 중인 여행 조회 성공 (없을 경우 빈 객체 반환)"
+            )
+    })
     @GetMapping("/current")
     public ResponseEntity<CurrentTripResponse> getCurrentTrip(
             @AuthenticationPrincipal Long userId
     ) {
         return ResponseEntity.ok(tripService.getCurrentTripOrNull(userId));
     }
+
 
     @Operation(
             summary = "여행 삭제",
