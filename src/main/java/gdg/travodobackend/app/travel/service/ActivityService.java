@@ -93,7 +93,6 @@ public class ActivityService {
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new RuntimeException("여행을 찾을 수 없습니다."));
 
-        // ⭐ 핵심 추가
         if (trip.getStatus() != TripStatus.ONGOING) {
             throw new RuntimeException("진행 중인 여행에서만 오늘 일정을 조회할 수 있습니다.");
         }

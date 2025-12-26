@@ -181,5 +181,4 @@ public class TripMapService {
                     return locationRepository.save(location);
                 });
     }
-
 }
