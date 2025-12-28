@@ -81,7 +81,7 @@ public class TodoService {
     }
 
     public TodoResponse assignTodo(Long userId, Long tripId, Long todoId) {
-        validateTripMember(userId, tripId);
+        validateTripMember(tripId, userId);
 
         Todo todo = todoRepository
                 .findByIdAndTripId(todoId, tripId)
@@ -100,7 +100,7 @@ public class TodoService {
     }
 
     public TodoResponse unassignTodo(Long userId, Long tripId, Long todoId) {
-        validateTripMember(userId, tripId);
+        validateTripMember(tripId, userId);
 
         Todo todo = todoRepository
                 .findByIdAndTripId(todoId, tripId)
@@ -120,7 +120,7 @@ public class TodoService {
     }
 
     public void deleteTodo(Long userId, Long tripId, Long todoId) {
-        validateTripMember(userId, tripId);
+        validateTripMember(tripId, userId);
 
         Todo todo = todoRepository
                 .findByIdAndTripId(todoId, tripId)
