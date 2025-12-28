@@ -13,4 +13,6 @@ public interface TripMemberRepository extends JpaRepository<TripMember, Long> {
     Optional<TripMember> findByUserIdAndTripStatus(Long userId, TripStatus status);
 
     void deleteByTripId(Long tripId);
+
+    long countByTripId(Long tripId);
 }

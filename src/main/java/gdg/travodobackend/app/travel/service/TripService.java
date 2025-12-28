@@ -199,6 +199,13 @@ public class TripService {
         }
 
         trip.updateStatus(request.status());
+
+        // 여행 종료 시 참여한 전체 여행자 수 자동 취합
+        if (request.status() == TripStatus.FINISHED) {
+            long participantCount = tripMemberRepository.countByTripId(tripId);
+            trip.setParticipantCount((int) participantCount);
+        }
+
         tripRepository.save(trip);
 
         return TripResponse.from(trip);
