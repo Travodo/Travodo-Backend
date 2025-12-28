@@ -16,6 +16,7 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
             LocalDateTime start,
             LocalDateTime end
     );
+    List<Activity> findAllByTripId(Long tripId);
 
     void deleteByTripId(Long tripId);
 }

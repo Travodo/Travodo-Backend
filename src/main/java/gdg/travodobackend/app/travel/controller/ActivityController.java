@@ -14,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Tag(
         name = "여행 활동",
@@ -27,30 +28,20 @@ public class ActivityController {
     private final ActivityService activityService;
 
     @Operation(
-            summary = "DAY별 여행 활동 조회",
+            summary = "여행 활동 목록 조회",
             description = """
-                특정 날짜의 여행 활동 목록을 조회합니다.
-                - 진행 중(ONGOING) 상태의 여행에서만 조회 가능합니다.
-                """
+            여행의 모든 활동(Activity)을 조회합니다.
+            - 여행 상태와 관계없이 조회 가능합니다.
+            - 날짜/시간 기준 조회는 사용하지 않습니다.
+            """
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "403", description = "여행 멤버가 아님"),
-            @ApiResponse(responseCode = "400", description = "진행 중인 여행이 아님"),
-            @ApiResponse(responseCode = "404", description = "여행을 찾을 수 없음")
-    })
     @GetMapping
-    public ResponseEntity<ActivityDayResponse> getActivitiesByDate(
+    public ResponseEntity<List<ActivityResponse>> getActivities(
             @AuthenticationPrincipal Long userId,
-
-            @Parameter(description = "여행 ID", example = "1")
-            @PathVariable Long tripId,
-
-            @Parameter(description = "조회 날짜 (YYYY-MM-DD)", example = "2025-12-20")
-            @RequestParam LocalDate date
+            @PathVariable Long tripId
     ) {
         return ResponseEntity.ok(
-                activityService.getActivitiesByDate(userId, tripId, date)
+                activityService.getActivities(userId, tripId)
         );
     }
 
@@ -113,15 +104,10 @@ public class ActivityController {
             @ApiResponse(responseCode = "404", description = "활동을 찾을 수 없음")
     })
     @PatchMapping("/{activityId}/status")
-    public ResponseEntity<ActivityResponse> updateStatus(
+    public ResponseEntity<Boolean> updateStatus(
             @AuthenticationPrincipal Long userId,
-
-            @Parameter(description = "여행 ID", example = "1")
             @PathVariable Long tripId,
-
-            @Parameter(description = "활동 ID", example = "10")
             @PathVariable Long activityId,
-
             @Valid @RequestBody ActivityStatusUpdateRequest request
     ) {
         return ResponseEntity.ok(

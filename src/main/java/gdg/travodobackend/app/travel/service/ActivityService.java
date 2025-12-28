@@ -37,7 +37,6 @@ public class ActivityService {
         Activity activity = Activity.builder()
                 .trip(trip)
                 .title(request.title())
-                .time(request.time())
                 .status(ActivityStatus.PENDING)
                 .build();
 
@@ -55,7 +54,7 @@ public class ActivityService {
                 .findByIdAndTripId(activityId, tripId)
                 .orElseThrow(() -> new RuntimeException("활동을 찾을 수 없습니다."));
 
-        activity.update(request.title(), request.time());
+        activity.update(request.title());
 
         return ActivityResponse.from(activity);
     }
@@ -70,7 +69,7 @@ public class ActivityService {
         activityRepository.delete(activity);
     }
 
-    public ActivityResponse updateStatus(
+    public boolean updateStatus(
             Long userId, Long tripId, Long activityId, ActivityStatusUpdateRequest request
     ) {
         validateTripMember(tripId, userId);
@@ -81,36 +80,18 @@ public class ActivityService {
 
         activity.updateStatus(request.status());
 
-        return ActivityResponse.from(activity);
+        return true;
     }
 
     @Transactional(readOnly = true)
-    public ActivityDayResponse getActivitiesByDate(
-            Long userId, Long tripId, LocalDate date
+    public List<ActivityResponse> getActivities(
+            Long userId, Long tripId
     ) {
         validateTripMember(tripId, userId);
 
-        Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new RuntimeException("여행을 찾을 수 없습니다."));
-
-        if (trip.getStatus() != TripStatus.ONGOING) {
-            throw new RuntimeException("진행 중인 여행에서만 오늘 일정을 조회할 수 있습니다.");
-        }
-
-        LocalDateTime start = date.atStartOfDay();
-        LocalDateTime end = date.atTime(23, 59, 59);
-
-        List<ActivityResponse> activities = activityRepository
-                .findAllByTripIdAndTimeBetween(tripId, start, end)
+        return activityRepository.findAllByTripId(tripId)
                 .stream()
                 .map(ActivityResponse::from)
                 .toList();
-
-        return new ActivityDayResponse(
-                tripId,
-                date.toString(),
-                activities
-        );
     }
-
 }

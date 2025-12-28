@@ -25,9 +25,8 @@ public class Activity {
     @Enumerated(EnumType.STRING)
     private ActivityStatus status;
 
-    public void update(String title, LocalDateTime time) {
+    public void update(String title) {
         this.title = title;
-        this.time = time;
     }
 
     public void updateStatus(ActivityStatus status) {
