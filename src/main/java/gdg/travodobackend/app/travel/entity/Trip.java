@@ -38,6 +38,8 @@ public class Trip {
     private List<TripMember> members = new ArrayList<>();
     private LocalDateTime inviteCodeExpiresAt;
 
+    private Integer participantCount;
+
     // 여행 상태 변경 메서드
     public void updateStatus(TripStatus status) {
         this.status = status;
@@ -57,5 +59,10 @@ public class Trip {
     // 여행 생성 시 설정한 최대 여행 멤버수까지 도달했는지
     public boolean isFull() {
         return maxMembers != null && members.size() >= maxMembers;
+    }
+
+    // 초대 코드로 참여한 여행자 수 설정
+    public void setParticipantCount(int count) {
+        this.participantCount = count;
     }
 }
